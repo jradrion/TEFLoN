@@ -6,7 +6,8 @@ import argparse, sys, os
 parser = argparse.ArgumentParser()
 parser.add_argument('-b',dest='bed',help='ref bed')
 parser.add_argument('-g',dest='genome',help='reference genome')
-parser.add_argument('-o',dest='out',help='ouput file')
+parser.add_argument('-o',dest='out',help='ouput directory')
+parser.add_argument('-p',dest='pre',help='ouput prefix')
 args = parser.parse_args()
 
 def fastaformat(seq):
@@ -30,7 +31,9 @@ def refMapMake(the_list, val):
             outLine.append(count)
     return outLine
 
-def removeBedPos(bedFile, fasta, outFILE):
+def removeBedPos(bedFile, fasta, outDIR, pre):
+    outFILE=os.path.join(outDIR,pre+".pseudo.fa")
+    outSEQS=os.path.join(outDIR,pre+".annotatedTE.fa")
     bed=[]
     print 'reading bed'
     with open(bedFile, 'r') as fIN:
@@ -39,7 +42,8 @@ def removeBedPos(bedFile, fasta, outFILE):
             chrom=arr[0]
             start=int(arr[1])
             stop=int(arr[2])
-            bed.append([chrom,start,stop])
+            ID=arr[3]
+            bed.append([chrom,start,stop,ID])
     print 'reading genome'
     chroms=[]
     genome={}
@@ -64,17 +68,30 @@ def removeBedPos(bedFile, fasta, outFILE):
         print chrom, len(seq), "finished"
         genome[chrom]=seq
     chroms=sorted(chroms)
-    print "removing bed positions"
+    extractedSeqs={}
+    print "write bed positions"
     for ch in genome:
         #print "old len:",len(genome[ch])
         for x in bed:
             if ch == x[0]:
+                extractedSeqs[x[3]]=""
+                for i in xrange(x[1]-1,x[2]):
+                    extractedSeqs[x[3]]+=genome[ch][i]
+    for ch in genome:
+        for x in bed:
+            if ch == x[0]:
                 for i in xrange(x[1]-1,x[2]):
                     genome[ch][i]="$"
+                #print  extractedSeqs
+                #sys.exit()
         pseudoMap[ch]=pseudoMapMake(genome[ch],"$")
         refMap[ch]=refMapMake(genome[ch],"$")
         genome[ch]=remove_values_from_list(genome[ch],"$")
         #print "new len:",len(genome[ch])
+
+    with open(outSEQS, "w") as fOUT:
+        for x in extractedSeqs:
+            fOUT.write(">%s\n%s\n" %(x,fastaformat(extractedSeqs[x])))
 
     with open(outFILE, "w") as fOUT1, open(outFILE.replace(".fa",".genomeSize.txt"), 'w') as fOUT2, open(outFILE.replace(".fa",".pseudoMap.txt"),"w") as fOUT3, open(outFILE.replace(".fa",".refMap.txt"),"w") as fOUT4:
         print "writing psuedo genome, genome size file, and conversion map"
@@ -91,7 +108,7 @@ def removeBedPos(bedFile, fasta, outFILE):
 
 
 
-removeBedPos(args.bed, args.genome, args.out)
+removeBedPos(args.bed, args.genome, args.out, args.pre)
 
 
 
