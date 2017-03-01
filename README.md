@@ -8,9 +8,10 @@ Input data can either be individually sequenced or pooled data and multiple samp
 
 TEFLoN is only dependent on samtools if you have an existing TE annotation file in bed format.
 If you do not have a TE annotation file in bed format, TEFLoN is also dependent on RepeatMasker.
+You must download and install these programs to use TEFLoN.
 
 ## Usage
-If you do not have an existing TE annotation first use teflon_prep_ref.py to prepare your reference genome for mapping
+If you do not have an existing TE annotation, first use teflon_prep_ref.py to prepare your reference genome for mapping.
 
 ###Without reference TE annotation
 First, you will need to use repeatMasker to search for TE sequence in the reference 
