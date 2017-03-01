@@ -14,7 +14,9 @@ If you do not have an existing TE annotation first use teflon_prep_ref.py to pre
 
 ###Without reference TE annotation
 First, you will need to use repeatMasker to search for TE sequence in the reference 
-```usage: python teflon_prep_ref.py 
+
+```
+usage: python teflon_prep_ref.py 
     -wd <full path to the working directory> 
     -r <full path to repeatMasker executable> 
     -g <reference_genome.fa>
