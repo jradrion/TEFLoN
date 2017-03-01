@@ -9,13 +9,16 @@ teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import reheadRepBaseLib as rh
-from teflon_scripts import repeatMaskerOut2Bed as rep2bed
-from teflon_scripts import repeatMaskerOut2hierarchy as rep2hier
-from teflon_scripts import pseudoGenerate as pg
+#from teflon_scripts import repeatMaskerOut2Bed as rep2bed
+#from teflon_scripts import repeatMaskerOut2hierarchy as rep2hier
+#from teflon_scripts import pseudoGenerate as pg
 
 
 def repeatMask(wd,RM,ref,cpu,repLib):
     try:
+        print "running RepeatMasker..."
+        cmd="cd "+wd
+        p = sp.Popen(shlex.split(cmd),stdout=sp.PIPE, stderr=sp.PIPE)
         cmd="perl "+RM+" -no_is -nolow -norna -pa "+cpu+" --lib "+repLib+" "+ref
         print "cmd:",cmd
         p = sp.Popen(shlex.split(cmd),stdout=sp.PIPE, stderr=sp.PIPE)
