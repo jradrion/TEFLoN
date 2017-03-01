@@ -6,7 +6,7 @@ Input data can either be individually sequenced or pooled data and multiple samp
 
 ## Dependencies
 
-TEFLoN is only dependent on samtools (www.samtools.sourceforge.net) if you have an existing TE annotation file in bed format.
+TEFLoN is only dependent on SAMtools (www.samtools.sourceforge.net) if you have an existing TE annotation file in bed format.
 If you do not have a TE annotation file in bed format, TEFLoN is also dependent on RepeatMasker (www.repeatmasker.org).
 You must download and install these programs to use TEFLoN.
 
