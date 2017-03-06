@@ -1,5 +1,4 @@
 *TEFLoN*
-You must download and install these programs to use TEFLoN.
 =======
 
 TEFLoN uses illumina sequence data to discover the positions and identity of TEs present in a sample(s).
