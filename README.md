@@ -15,10 +15,10 @@ If you do not have an existing TE annotation, first use teflon_prep_no_anno.py t
 
 ```
 usage: python teflon_prep_no_anno.py 
-    -wd <full path to the working directory> 
+    -wd <full path to working directory> 
     -r <full path to repeatMasker executable> 
     -g <full path to reference_genome.fa>
-    -l <full path to repBase.ref>
+    -l <full path to repBase_library.ref>
     -p <prefix for all newly created files>
     -n <number of CPUs>
 ```
