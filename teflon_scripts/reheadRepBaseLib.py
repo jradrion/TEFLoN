@@ -1,6 +1,8 @@
-def reheadRepBaseLib_portal(lib):
+def reheadRepBaseLib_portal(libIN,libOUT):
+    print "Rehead",libIN
+    print "Writing",libOUT
     dupCheck=[]
-    with open(lib, "r") as fIN, open(lib+".rehead", "w") as fOUT:
+    with open(libIN, "r") as fIN, open(libOUT, "w") as fOUT:
         for line in fIN:
             if line[0] == '>':
                  arr = line.split()

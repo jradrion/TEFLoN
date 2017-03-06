@@ -1,15 +1,7 @@
 '''generates a pseudo genome by removing all positions specified in the given .bed file
 also creates a file of pseudo genome sizes and maps between the pseudo and true reference'''
 
-import argparse, sys, os
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-b',dest='bed',help='ref bed')
-parser.add_argument('-g',dest='genome',help='reference genome')
-parser.add_argument('-o',dest='out',help='ouput directory')
-parser.add_argument('-p',dest='pre',help='ouput prefix')
-args = parser.parse_args()
-
+import os
 def fastaformat(seq):
     '''returns a string where every 70 bases is separated by a new line'''
     return '\n'.join(seq[i:i+70] for i in xrange(0,len(seq),70))
@@ -31,9 +23,9 @@ def refMapMake(the_list, val):
             outLine.append(count)
     return outLine
 
-def removeBedPos(bedFile, fasta, outDIR, pre):
-    outFILE=os.path.join(outDIR,pre+".pseudo.fa")
-    outSEQS=os.path.join(outDIR,pre+".annotatedTE.fa")
+def removeBedPos(bedFile, fasta, mapDIR,inputDIR, pre):
+    outFILE=os.path.join(mapDIR,pre+".pseudo.fa")
+    outSEQS=os.path.join(mapDIR,pre+".annotatedTE.fa")
     bed=[]
     print 'reading bed'
     with open(bedFile, 'r') as fIN:
@@ -93,7 +85,7 @@ def removeBedPos(bedFile, fasta, outDIR, pre):
         for x in extractedSeqs:
             fOUT.write(">%s\n%s\n" %(x,fastaformat(extractedSeqs[x])))
 
-    with open(outFILE, "w") as fOUT1, open(outFILE.replace(".fa",".genomeSize.txt"), 'w') as fOUT2, open(outFILE.replace(".fa",".pseudoMap.txt"),"w") as fOUT3, open(outFILE.replace(".fa",".refMap.txt"),"w") as fOUT4:
+    with open(outFILE, "w") as fOUT1, open(os.path.join(inputDIR,pre+".genomeSize.txt"), 'w') as fOUT2, open(os.path.join(inputDIR,pre+".pseudoMap.txt"),"w") as fOUT3, open(os.path.join(inputDIR,pre+".refMap.txt"),"w") as fOUT4:
         print "writing psuedo genome, genome size file, and conversion map"
         for x in chroms:
             for ch in genome:
@@ -107,8 +99,8 @@ def removeBedPos(bedFile, fasta, outDIR, pre):
                     fOUT4.write(",".join([str(x) for x in refMap[ch]])+"\n")
 
 
-
-removeBedPos(args.bed, args.genome, args.out, args.pre)
+def pseudo_generate_portal(bed,genome,mapDIR,inputDIR,pre):
+    removeBedPos(bed,genome,mapDIR,inputDIR,pre)
 
 
 
