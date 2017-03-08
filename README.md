@@ -71,11 +71,11 @@ Step 1) For each sample, run teflonDiscover.
 usage: python usr/local/teflon.v0.2.py
     -wd <full path to the working directory>
     -ex <full path to the samtools executable>
-    -g <full path to genomeSize.txt> #created by teflon_prep in /usr/local/prep_TF/
+    -g <full path to genomeSize.txt> #created by teflon_prep
     -s <full path to samples.txt> #user created
     -b <full path to sorted and indexed bam file>
-    -a <full path to BED formatted TE annotation file in pseudospace> #created by teflon_prep in /usr/local/prep_TF/
-    -t <full path to TE hierarchy file> #created by teflon_prep in /usr/local/prep_TF/
+    -a <full path to BED formatted TE annotation file in pseudospace> #created by teflon_prep
+    -t <full path to TE hierarchy file> #created by teflon_prep
     -l <level of the hierarchy file to guide initial TE search> #recommended "family" (note: level must appear in the first line of the TE hierarch file)
     -cl <level of the hierarchy to cluster similar TEs> #can be same "level" of hierarchy used in -l or higher (raising level will reduce the number of TE instances found)
     -e <newline separated file of any te families to ignore from analysis> (optional)
