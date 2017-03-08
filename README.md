@@ -40,7 +40,7 @@ bwa index <prefix.mappingRef.fa>
 Step 3) For each of sample, map reads with BWA mem or a similar mapping package (i.e. one that is able to identify and mark soft-clipped reads).
 Note: TEFLoN has only been tested using bwa mem v.0.7.10
 ```
-bwa mem -t <nThreads> -Y <read1.fq> <read2.fq> <alignment.sam>
+bwa mem -t <nThreads> -Y <prefix.mappingRef.fa> <read1.fq> <read2.fq> > alignment.sam
 ```
 Step 4) For each sample, sort and index the alignment produced by BWA.
 ```
