@@ -10,7 +10,7 @@ If you have an existing BED formated TE annotation file, TEFLoN is only dependen
 If you do not have a TE annotation file in bed format, TEFLoN is also dependent on RepeatMasker (www.repeatmasker.org).
 
 ## Usage
-###Without reference TE annotation
+###Data prep without reference TE annotation
 Step 1) If you do not have an existing TE annotation, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
 
 ```
@@ -38,16 +38,34 @@ samtools view -Sb <alignment.sam> | samtools sort -@ <nThreads> - -o <alignment.
 samtools index <alignment.sorted.bam>
 ```
 Ideally, you should have also QC processed your raw reads and removed duplicates from the alignment.
-Now you are ready to proceed to using TEFLoN.
 
-###With reference TE annotation
-Coming soon...
-
-###Using TEFLoN
-Step 1) Create a txt file where new line contains the full path to each sample alignment and a unique prefix/nickname for each sample separated by a tab.
+Step 5) Create a txt file, <samples.txt>,  where each new line contains both the full path to the indexed and sorted alignment.bam for a sample and a unique prefix/nickname for that sample separated by a tab.
+Currently, this step is necessary even if you are only analyzing a single sample.
 ```
 /usr/local/sample1.bam  s1
 /usr/local/sample2.bam  s2
+```
+
+Now you are ready to proceed to using TEFLoN.
+
+###Data prep with reference TE annotation
+Coming soon...
+
+###Using TEFLoN
+There are four modules to TEFLoN: teflonDiscover, teflonCollapse, teflonCount, and teflonGenotype.
+You must run teflonDiscover and teflonCount seperately for each sample. These modules may run independently for each sample (i.e. you can run all samples simultaneosly with if you have enough CPUs).
+TeflonCollapse and teflonGenotype only need to run once per analysis.
+
+Step 1) For each sample, run teflonDiscover.
+
+Step 2) Run teflonCollapse.
+
+Step 3) For each sample, run teflonCount.
+
+Step 2) Run teflonGenotype.
+
+
+
 
 
 
