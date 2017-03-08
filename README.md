@@ -45,6 +45,7 @@ bwa mem -t <nThreads> -Y <prefix.mappingRef.fa> <read1.fq> <read2.fq> > alignmen
 Step 4) For each sample, sort and then index the alignment produced by BWA.
 ```
 samtools view -Sb <alignment.sam> | samtools sort -@ <nThreads> - -o alignment.sorted.bam
+
 samtools index <alignment.sorted.bam>
 ```
 Note: Ideally, you should have also QC processed your raw reads and removed duplicates from the alignment.
