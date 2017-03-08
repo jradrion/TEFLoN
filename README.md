@@ -39,7 +39,7 @@ samtools index <alignment.sorted.bam>
 ```
 Note: Ideally, you should have also QC processed your raw reads and removed duplicates from the alignment.
 
-Step 5) Create a txt file, "<samples.txt>",  where each new line contains both the full path to the indexed and sorted alignment.bam for a sample and a unique prefix/nickname for that sample separated by a tab.
+Step 5) Create a txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam for a sample and a unique prefix/nickname for that sample separated by a tab.
 Currently, this step is necessary even if you are only analyzing a single sample.
 ```
 /usr/local/sample1.bam  s1
