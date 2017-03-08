@@ -42,7 +42,7 @@ Note: TEFLoN has only been tested using bwa mem v.0.7.10
 ```
 bwa mem -t <nThreads> -Y <prefix.mappingRef.fa> <read1.fq> <read2.fq> > alignment.sam
 ```
-Step 4) For each sample, sort and index the alignment produced by BWA.
+Step 4) For each sample, sort and then index the alignment produced by BWA.
 ```
 samtools view -Sb <alignment.sam> | samtools sort -@ <nThreads> - -o alignment.sorted.bam
 samtools index <alignment.sorted.bam>
