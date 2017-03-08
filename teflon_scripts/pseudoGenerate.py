@@ -23,11 +23,11 @@ def refMapMake(the_list, val):
             outLine.append(count)
     return outLine
 
-def removeBedPos(bedFile, fasta, mapDIR,inputDIR, pre):
-    outFILE=os.path.join(mapDIR,pre+".pseudo.fa")
-    outSEQS=os.path.join(mapDIR,pre+".annotatedTE.fa")
+def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
+    outFILE=os.path.join(prep_MP_DIR,pre+".pseudo.fa")
+    outSEQS=os.path.join(prep_MP_DIR,pre+".RM.annotatedTE.fa")
     bed=[]
-    print 'reading bed'
+    print 'Reading TE annotation:', bedFile
     with open(bedFile, 'r') as fIN:
         for line in fIN:
             arr=line.split()
@@ -36,7 +36,7 @@ def removeBedPos(bedFile, fasta, mapDIR,inputDIR, pre):
             stop=int(arr[2])
             ID=arr[3]
             bed.append([chrom,start,stop,ID])
-    print 'reading genome'
+    print 'Reading reference:',fasta
     chroms=[]
     genome={}
     pseudoMap={}
@@ -61,7 +61,7 @@ def removeBedPos(bedFile, fasta, mapDIR,inputDIR, pre):
         genome[chrom]=seq
     chroms=sorted(chroms)
     extractedSeqs={}
-    print "write bed positions"
+    print "Writing annotated TEs as fasta:",outSEQS
     for ch in genome:
         #print "old len:",len(genome[ch])
         for x in bed:
@@ -85,8 +85,11 @@ def removeBedPos(bedFile, fasta, mapDIR,inputDIR, pre):
         for x in extractedSeqs:
             fOUT.write(">%s\n%s\n" %(x,fastaformat(extractedSeqs[x])))
 
-    with open(outFILE, "w") as fOUT1, open(os.path.join(inputDIR,pre+".genomeSize.txt"), 'w') as fOUT2, open(os.path.join(inputDIR,pre+".pseudoMap.txt"),"w") as fOUT3, open(os.path.join(inputDIR,pre+".refMap.txt"),"w") as fOUT4:
-        print "writing psuedo genome, genome size file, and conversion map"
+    with open(outFILE, "w") as fOUT1, open(os.path.join(prep_TF_DIR,pre+".genomeSize.txt"), 'w') as fOUT2, open(os.path.join(prep_TF_DIR,pre+".pseudo2refMap.txt"),"w") as fOUT3, open(os.path.join(prep_TF_DIR,pre+".ref2pseudoMap.txt"),"w") as fOUT4:
+        print "Writing genome size file:",os.path.join(prep_TF_DIR,pre+".genomeSize.txt")
+        print "Writing pseudospace to refspace conversion map:",os.path.join(prep_TF_DIR,pre+".pseudo2refMap.txt")
+        print "Writing refspace to pseudospace conversion map:",os.path.join(prep_TF_DIR,pre+".ref2pseudoMap.txt")
+        print "Writing reference in pseudospace:",outFILE
         for x in chroms:
             for ch in genome:
                 if ch == x:
@@ -99,8 +102,8 @@ def removeBedPos(bedFile, fasta, mapDIR,inputDIR, pre):
                     fOUT4.write(",".join([str(x) for x in refMap[ch]])+"\n")
 
 
-def pseudo_generate_portal(bed,genome,mapDIR,inputDIR,pre):
-    removeBedPos(bed,genome,mapDIR,inputDIR,pre)
+def pseudo_generate_portal(bed,genome,prep_MP_DIR,prep_TF_DIR,pre):
+    removeBedPos(bed,genome,prep_MP_DIR,prep_TF_DIR,pre)
 
 
 
