@@ -17,13 +17,13 @@ Sample files are provided to ensure TEFLoN and its dependencies are running corr
 Step 1) If you do not have an existing TE annotation in BED format, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
 
 ```
-usage: python /usr/local/teflon_prep_no_anno.py 
-    -wd <full path to working directory> 
+usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
+    -wd <full path to working directory>
     -r <full path to repeatMasker executable> 
     -g <full path to reference_genome.fa>
     -l <full path to repBase_library.ref>
     -p <prefix for all newly created files>
-    -n <number of threads>
+    -n [number of threads]
 ```
 Important output files:
 * /usr/local/prep_TF/prefix.bed
@@ -69,9 +69,9 @@ TeflonCollapse and teflonGenotype only need to run once per analysis.
 
 Step 1) For each sample, run teflonDiscover.
 ```
-usage: python usr/local/teflon.v0.2.py
-    -wd <full path to the working directory>
-    -ex <full path to the samtools executable>
+usage: python usr/local/teflon.v0.2.py <required> [optional]
+    -wd <full path to working directory>
+    -ex <full path to samtools executable>
     -g <full path to genomeSize.txt> #created by teflon_prep
     -s <full path to samples.txt> #user created
     -b <full path to sorted and indexed bam file>
@@ -79,20 +79,45 @@ usage: python usr/local/teflon.v0.2.py
     -t <full path to TE hierarchy file> #created by teflon_prep
     -l <level of the hierarchy file to guide initial TE search> #recommended "family" (note: level must appear in the first line of the TE hierarch file)
     -cl <level of the hierarchy to cluster similar TEs> #can be same "level" of hierarchy used in -l or higher (raising level will reduce the number of TE instances found)
-    -e <newline separated file of any te families to ignore from analysis> (optional)
-    -q <int> #mapped reads with map qualities lower than this number will be discarded
-    -sd <int> #use to manually override the insert size sd identified by samtools stat (check this number to ensure it seems more or less correct based on knowledge of sequencing library!)
-    -x <int> #number of threads to use
+    -e [newline separated file of any te families to ignore from analysis]
+    -q <map quality threshold> #mapped reads with map qualities lower than this number will be discarded
+    -sd [int] #use to manually override the insert size sd identified by samtools stat (check this number to ensure it seems more or less correct based on knowledge of sequencing library!)
+    -x [number of threads]
 ```
 
 Step 2) Run teflonCollapse.
+```
+usage: python usr/local/teflon_collapse.py <required> [optional]
+    -wd <full path to working directory>
+    -s <full path to samples.txt>
+    -t [number of threads]
+```
 
 Step 3) For each sample, run teflonCount.
+```
+usage: python /usr/local/teflon_count.py <required> [optional]
+    -wd <full path to working directory>
+    -ex <full path to samtools executable>
+    -g <full path to genomeSize.txt>
+    -s <full path to samples.txt>
+    -b <full path to sorted and indexed bam file>
+    -a <full path to BED formatted TE annotation file in pseudospace>
+    -t <full path to TE hierarchy file>
+    -q <map quality threshold>
+    -x [number of threads]
+```
 
 Step 2) Run teflonGenotype.
-
-
-
-
+```
+usage: python usr/local/teflon_genotype.py <required> [optional]
+    -wd <full path to working directory>
+    -ex <full path to samtools executable>
+    -g <full path to genomeSize.txt>
+    -s <full path to samples.txt>
+    -t <full path to TE hierarchy file>
+    -pm <full path to psuedo2refMap.txt file>
+    -dt <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
+    -x [number of threads]
+```
 
 
