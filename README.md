@@ -11,7 +11,7 @@ Input data can either be individually sequenced or sequenced as a pool, and mult
 * [Burrows-Wheeler Aligner](www.bio-bwa.sourceforge.net) (tested using v.0.7.10)
 * [RepeatMasker](www.repeatmasker.org) (Only required if you do not have a reference TE annotation)
 
-##Testing 
+## Testing 
 Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
 
 ## Usage
