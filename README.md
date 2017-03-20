@@ -16,7 +16,25 @@ Sample files are provided to ensure TEFLoN and its dependencies are running corr
 
 ## Usage
 ### Data prep
-Step 1a) If you *do not have* an existing TE annotation in BED format, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
+Step 1a) If you have a reference TE annotation in BED format, use teflon_prep_w_anno.py to prepare your reference genome for mapping.
+
+NOTE: You must also manually create a file where each entry in the annotation has at least one label (idealy this label would indicate the family or order for each TE instance, but you can use any label you like.)
+TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created hierarchy file.
+The first line of the file must include identifying headers and each ID/label must be separated by a tab.
+A good example of what this hierarchy file should look like is provided in the sample files.
+
+```
+usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
+    -wd <full path to working directory>
+    -a <full path to reference TE annotation in BED format> 
+    -t <full path to user generated TE hierarchy>
+    -g <full path to reference genome in fasta format>
+    -p <prefix for all newly created files>
+```
+
+Step 1b) If you *do not* have an existing TE annotation in BED format, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
+
+NOTE: In this case you will not need to manually create a hierarchy file, as TEFLoN will automatically create one based on the labels provided in the repBase library.
 
 ```
 usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
@@ -26,21 +44,6 @@ usage: python /usr/local/teflon_prep_no_anno.py <required> [optional]
     -l <full path to repBase_library.ref>
     -p <prefix for all newly created files>
     -n [number of threads]
-```
-Step 1b) If you *do have* an existing TE annotation in BED format, use teflon_prep_w_anno.py to prepare your reference genome for mapping.
-
-You must also create a file where each entry in the annotation has at least one label (idealy this label would indicate the family or order for each TE instance, but you can use any label you like.)
-Teflon will cluster reads mapping to the locations specified in the annotation by their respective labels from the hierarchy file.
-The first line of the file must include identifying headers and each ID/label must be separated by a tab.
-A good example of what this hierarchy file should look like is provided in the sample files. 
-
-```
-usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
-    -wd <full path to working directory>
-    -a <full path to reference TE annotation in BED format> 
-    -t <full path to user generated TE hierarchy>
-    -g <full path to reference genome in fasta format>
-    -p <prefix for all newly created files>
 ```
 
 Important output files:
