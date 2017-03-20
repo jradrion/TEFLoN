@@ -1,7 +1,7 @@
 *TEFLoN*
 =======
 
-TEFLoN uses paired-end illumina sequence data to discover the positions and identity of TEs present in a sample(s).
+TEFLoN uses paired-end illumina sequence data to discover the positions and identity of TEs present in one or multiple samples.
 Input data can either be individually sequenced or sequenced as a pool, and multiple samples can be analyzed simultaneously to improve sensitivity.
 
 ## Required packages
@@ -127,6 +127,7 @@ usage: python /usr/local/teflon_count.py <required> [optional]
 ```
 
 Step 2) Run teflonGenotype.
+NOTE: Currently haploid and diploid data types are under construction!
 ```
 usage: python usr/local/teflon_genotype.py <required> [optional]
     -wd <full path to working directory>
@@ -140,4 +141,25 @@ usage: python usr/local/teflon_genotype.py <required> [optional]
 ```
 
 ### Output
+The output "genotype" file is currently a tab-separated file with the following columns:
+```
+C1: chromosome
+C2: 5' breakpoint (if available)
+C3: 3' breakpoint (if available)
+C4: search level id
+C5: cluster level id
+C6: strand (currently under construction)
+C7: annotated reference TE id (if available)
+C8: 5' breakpoint is supported by soft-clipped reads (if TRUE + else -)
+C9: 3' breakpoint is supported by soft-clipped reads (if TRUE + else -)
+C10: read count for "presence reads"
+C11: read count for "absence reads"
+C12: read count for "other reads"
+C13: allele frequency/genotype (fq if pooled data, genotype for haploid/diploid currently under construction)
+
+```
+
+### Citation
+If you use TEFLoN in your work please cite:
+Adrion, J.R., M.J. Song, D.R. Schrider, M.W. Hahn, and S. Schaack. 2017. Genome-wide estimates of transposable element insertion and deletion rates in *Drosophila melanogaster*. Genome Biology and Evolution. https://doi.org/10.1093/gbe/evx050.
 
