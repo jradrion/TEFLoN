@@ -70,8 +70,10 @@ samtools index <alignment.sorted.bam>
 ```
 Note: Ideally, you should have also QC processed your raw reads and removed duplicates from the alignment.
 
-Step 5) Create a txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam for a sample and a unique prefix/nickname for that sample separated by a tab.
+Step 5) Create a .txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam file and a unique prefix/nickname for that sample separated by a tab.
 Currently, this step is necessary even if you are only analyzing a single sample.
+
+Example File:
 ```
 /usr/local/sample1.sorted.bam  s1
 /usr/local/sample2.sorted.bam  s2
@@ -81,7 +83,7 @@ You are now ready to proceed to using TEFLoN.
 
 ### Using TEFLoN
 There are four modules to TEFLoN: teflonDiscover, teflonCollapse, teflonCount, and teflonGenotype.
-You must run teflonDiscover and teflonCount seperately for each sample. These modules may run independently for each sample (i.e. you can run all samples simultaneosly with if you have enough CPUs).
+You must run teflonDiscover and teflonCount seperately for each sample. These modules may run independently for each sample (i.e. you can run all samples simultaneosly with enough threads).
 TeflonCollapse and teflonGenotype only need to run once per analysis.
 
 Step 1) For each sample, run teflonDiscover.
