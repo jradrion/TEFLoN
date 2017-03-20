@@ -4,6 +4,7 @@ also creates a file of pseudo genome sizes and maps between the pseudo and true 
 import os
 def fastaformat(seq):
     '''returns a string where every 70 bases is separated by a new line'''
+    seq=seq.upper()
     return '\n'.join(seq[i:i+70] for i in xrange(0,len(seq),70))
 
 def remove_values_from_list(the_list, val):
@@ -25,7 +26,7 @@ def refMapMake(the_list, val):
 
 def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
     outFILE=os.path.join(prep_MP_DIR,pre+".pseudo.fa")
-    outSEQS=os.path.join(prep_MP_DIR,pre+".RM.annotatedTE.fa")
+    outSEQS=os.path.join(prep_MP_DIR,pre+".annotatedTE.fa")
     bed=[]
     print 'Reading TE annotation:', bedFile
     with open(bedFile, 'r') as fIN:

@@ -9,7 +9,7 @@ def reheadRepBaseLib_portal(libIN,libOUT):
                      tmp="_".join([str(x) for x in arr[1].split()])
                  else:
                      tmp=arr[1]
-                 name = arr[0][1:] + "|" + tmp
+                 name = arr[0][1:] + "." + tmp
                  dupCheck.append(name)
                  fOUT.write(">"+name+"\n")
             else:

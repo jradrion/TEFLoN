@@ -15,5 +15,5 @@ def rep2bed_portal(inFILE,outFILE):
                 strand = "-"
             else:
                 strand = "+"
-            fOUT.write("%s\t%s\t%s\t%s\t.\t%s\n" %(line[4],line[5],line[6],"TEid"+line[14]+"//"+line[9],strand))
+            fOUT.write("%s\t%s\t%s\t%s\t.\t%s\n" %(line[4],line[5],line[6],"TEid"+line[14]+"."+line[9],strand))
 

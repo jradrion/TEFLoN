@@ -11,7 +11,7 @@ from teflon_scripts import reheadRepBaseLib as rh
 from teflon_scripts import repeatMaskerOut2Bed as rep2bed
 from teflon_scripts import repeatMaskerOut2hierarchy as rep2hier
 from teflon_scripts import pseudoGenerate as pg
-
+from teflon_scripts import convertPositions as cp
 
 def repeatMask(wd,RM,ref,cpu,repLib):
     try:
@@ -62,7 +62,7 @@ def main():
         repeatMask(args.wd,args.repMask,args.genome,args.cpu,lib_outFILE)
 
     #Create annotation.bed
-    RM_bedFILE=os.path.join(prep_TF_DIR,args.pre+".bed")
+    RM_bedFILE=os.path.join(prep_RM_DIR,args.pre+".bed")
     rep2bed.rep2bed_portal(masked_faFILE.replace(".masked",".out"),RM_bedFILE)
 
     #Create hierarchy.txt
@@ -74,6 +74,9 @@ def main():
         pg.pseudo_generate_portal(RM_bedFILE,masked_faFILE.replace(".masked",""),prep_MP_DIR,prep_TF_DIR,args.pre)
     else:
         print "Reference in pseudospace already exists:", pseudoRefFILE
+
+    #Convert annotation.bed to pseudospace
+    cp.convertPositions_portal(RM_bedFILE,os.path.join(prep_TF_DIR,args.pre+".ref2pseudoMap.txt"),os.path.join(prep_TF_DIR,args.pre+".te.pseudo.bed"))
 
     #Cat pseudoRef RM.annotatedTE.fa and
     mapRef=os.path.join(prep_MP_DIR,args.pre+".mappingRef.fa")
