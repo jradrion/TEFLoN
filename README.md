@@ -161,5 +161,6 @@ C13: allele frequency/genotype (fq if pooled data, genotype for haploid/diploid 
 
 ### Citation
 If you use TEFLoN in your work please cite:
+```
 Adrion, J.R., M.J. Song, D.R. Schrider, M.W. Hahn, and S. Schaack. 2017. Genome-wide estimates of transposable element insertion and deletion rates in *Drosophila melanogaster*. Genome Biology and Evolution. https://doi.org/10.1093/gbe/evx050.
-
+```
