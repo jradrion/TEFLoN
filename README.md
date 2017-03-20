@@ -24,7 +24,7 @@ The first line of the file must include identifying headers and each ID/label mu
 A good example of what this hierarchy file should look like is provided in the sample files.
 
 ```
-usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
+usage: python /usr/local/teflon_prep_w_anno.py <required> [optional] 
     -wd <full path to working directory>
     -a <full path to reference TE annotation in BED format> 
     -t <full path to user generated TE hierarchy>
