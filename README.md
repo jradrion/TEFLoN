@@ -6,13 +6,12 @@ Input data can either be individually sequenced or sequenced as a pool, and mult
 
 ## Required packages
 
-* [python](http://www.python.org) v2.7
+* [python](www.python.org) v2.7
 * [samtools](www.samtools.sourceforge.net) (tested using v.1.3)
 * [Burrows-Wheeler Aligner](www.bio-bwa.sourceforge.net) (tested using v.0.7.10)
 * [RepeatMasker](www.repeatmasker.org) (Only required if you do not have a reference TE annotation)
 
-##Testing
-Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
+##Testing Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
 
 ## Usage
 ###Data prep
