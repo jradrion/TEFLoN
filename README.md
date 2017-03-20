@@ -11,10 +11,11 @@ Input data can either be individually sequenced or sequenced as a pool, and mult
 * [Burrows-Wheeler Aligner](www.bio-bwa.sourceforge.net) (tested using v.0.7.10)
 * [RepeatMasker](www.repeatmasker.org) (Only required if you do not have a reference TE annotation)
 
-##Testing Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
+##Testing 
+Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
 
 ## Usage
-###Data prep
+### Data prep
 Step 1a) If you *do not have* an existing TE annotation in BED format, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
 
 ```
@@ -75,7 +76,7 @@ Currently, this step is necessary even if you are only analyzing a single sample
 
 You are now ready to proceed to using TEFLoN.
 
-###Using TEFLoN
+### Using TEFLoN
 There are four modules to TEFLoN: teflonDiscover, teflonCollapse, teflonCount, and teflonGenotype.
 You must run teflonDiscover and teflonCount seperately for each sample. These modules may run independently for each sample (i.e. you can run all samples simultaneosly with if you have enough CPUs).
 TeflonCollapse and teflonGenotype only need to run once per analysis.
@@ -133,5 +134,5 @@ usage: python usr/local/teflon_genotype.py <required> [optional]
     -x [number of threads]
 ```
 
-###Output
+### Output
 
