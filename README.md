@@ -73,8 +73,8 @@ Note: Ideally, you should have also QC processed your raw reads and removed dupl
 Step 5) Create a .txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam file and a unique prefix/nickname for that sample separated by a tab.
 Currently, this step is necessary even if you are only analyzing a single sample.
 
-Example File:
 ```
+Example File:
 /usr/local/sample1.sorted.bam  s1
 /usr/local/sample2.sorted.bam  s2
 ```
