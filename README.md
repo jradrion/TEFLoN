@@ -7,10 +7,9 @@ Input data can either be individually sequenced or sequenced as a pool, and mult
 ## Required dependencies
 
 * [python](http://www.python.org) v2.7
-* [samtools](www.samtools.sourceforge.net) tested using v.1.3
-* [Burrows-Wheeler Aligner](www.bio-bwa.sourceforge.net) tested using v.0.7.10
-
-If you do not have a TE annotation file in BED format, TEFLoN is also requires [RepeatMasker](www.repeatmasker.org).
+* [samtools](www.samtools.sourceforge.net) (tested using v.1.3)
+* [Burrows-Wheeler Aligner](www.bio-bwa.sourceforge.net) (tested using v.0.7.10)
+* [RepeatMasker](www.repeatmasker.org) (Needed only if you do not have a reference TE annotation)
 
 ##Testing
 Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
