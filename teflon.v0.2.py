@@ -129,7 +129,8 @@ def main():
     parser.add_argument("-x", dest="nProc", type=int, default=4, help="Specify number of processes")
     args = parser.parse_args()
 
-    wdPath=args.wd
+    wd=os.path.realpath(args.wd)
+    sys.exit()
     exePATH=args.exe
     bam=args.bam
     level=args.level
@@ -220,11 +221,11 @@ def main():
             if line.startswith("Av"):
                 cov=int(float(line.split()[-1]))
 
-    bedDir = args.wd + pre+".bed_files"
-    samDir = args.wd + pre+".sam_files"
-    posDir = args.wd + pre+".te_positions"
-    suppDir = args.wd + pre+".supplemental_alignments"
-    outDir =  args.wd + "initialPos"
+    bedDir = os.path.join(wd,pre+".bed_files")
+    samDir = os.path.join(wd,pre+".sam_files")
+    posDir = os.path.join(wd,pre+".te_positions")
+    suppDir = os.path.join(wd,pre+".supplemental_alignments")
+    outDir =  os.path.join(wd,"initialPos")
 
     if args.exclude == 0:
         excludeList=[]

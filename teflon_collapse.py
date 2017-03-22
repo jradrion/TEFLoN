@@ -24,7 +24,7 @@ def main():
     parser.add_argument('-t',dest='thresh',help='read count threshold (any one individual must have >= t reads summed from the presence and absence collumn', type=int, default=1)
     args = parser.parse_args()
 
-    wdPath=args.wd
+    wd=os.path.realpath(args.wd)
 
     samples=[]
     #each sample will be [path to sorted_position.txt, path to bamFILE, uniqueID, stats]
@@ -47,7 +47,7 @@ def main():
     readLen,insz,sd=stats[0],stats[1],stats[2]
 
     #create the genotype directory
-    genoDir = wdPath + "initialPos"
+    genoDir = os.path.join(wd,"initialPos")
     mkdir_if_not_exist(genoDir)
 
     #concatonate position estimates for each sample

@@ -84,7 +84,7 @@ def main():
     parser.add_argument("-x", dest="nProc", type=int, default=4, help="Specify number of processes")
     args = parser.parse_args()
 
-    wdPath=args.wd
+    wd=os.path.realpath(args.wd)
     exePATH=args.exe
     qual=args.qual
     nProc=args.nProc
@@ -134,12 +134,12 @@ def main():
 
 
     #create the genotype directory
-    genoDir = wdPath + "finalPos"
-    tmpDir = os.path.join(wdPath,pre+".tmp")
+    genoDir = os.path.join(wd,"finalPos")
+    tmpDir = os.path.join(wd,pre+".tmp")
     mkdir_if_not_exist(genoDir, tmpDir)
 
     union=[]
-    with open(os.path.join(wdPath,"initialPos","union_sorted.collapsed.txt"), "r") as fIN:
+    with open(os.path.join(wd,"initialPos","union_sorted.collapsed.txt"), "r") as fIN:
         for line in fIN:
             union.append(line.split())
 

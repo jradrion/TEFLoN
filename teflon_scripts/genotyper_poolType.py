@@ -1,3 +1,4 @@
+import os
 def avgReads(line,readLen):
     F,R="",""
     if line[1].isdigit():

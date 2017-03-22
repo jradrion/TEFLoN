@@ -81,7 +81,7 @@ def main():
     parser.add_argument("-x", dest="nProc", type=int, default=4, help="Specify number of processes")
     args = parser.parse_args()
 
-    wdPath=args.wd
+    wd=os.path.realpath(args.wd)
     exePATH=args.exe
     posMap=args.posMap
     dataType=args.dataType
@@ -143,7 +143,7 @@ def main():
 
 
     #create the genotype directory
-    genoDir = wdPath + "finalPos"
+    genoDir = os.path.join(wd,"finalPos")
 
     print "genotyping"
     if dataType == "pooled":

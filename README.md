@@ -126,7 +126,7 @@ usage: python /usr/local/teflon_count.py <required> [optional]
     -x [number of threads]
 ```
 
-Step 2) Run teflonGenotype.
+Step 4) Run teflonGenotype.
 NOTE: Currently haploid and diploid data types are under construction!
 ```
 usage: python usr/local/teflon_genotype.py <required> [optional]
@@ -134,6 +134,7 @@ usage: python usr/local/teflon_genotype.py <required> [optional]
     -ex <full path to samtools executable>
     -g <full path to genomeSize.txt>
     -s <full path to samples.txt>
+    -a <full path to te.psuedo.bed>
     -t <full path to TE hierarchy file>
     -pm <full path to psuedo2refMap.txt file>
     -dt <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts

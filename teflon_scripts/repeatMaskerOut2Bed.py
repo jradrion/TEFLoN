@@ -1,3 +1,5 @@
+import sys
+
 ##Converts RepeatMasker out file to a bed file to be used with TEFLoN
 def rep2bed_portal(inFILE,outFILE):
     print "Writing annotation file:",outFILE
@@ -8,6 +10,10 @@ def rep2bed_portal(inFILE,outFILE):
             if ar:
                 if ar[0] not in "SWscore":
                     repMasked.append(ar)
+
+    for i in range(10):
+        print repMasked[i]
+    sys.exit()
 
     with open(outFILE, "w") as fOUT:
         for line in repMasked:
