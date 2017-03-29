@@ -39,10 +39,11 @@ NOTE: In this case you will not need to manually create a hierarchy file, as TEF
 ```
 usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
     -wd <full path to working directory>
-    -r <full path to repeatMasker executable> 
+    - <full path to repeatMasker executable> 
     -g <full path to reference genome in fasta format>
     -l <full path to repBase_library.ref>
     -p <prefix for all newly created files>
+    -r <average length of sequenced reads>
     -n [number of threads]
 ```
 

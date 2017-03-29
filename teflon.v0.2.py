@@ -130,7 +130,6 @@ def main():
     args = parser.parse_args()
 
     wd=os.path.realpath(args.wd)
-    sys.exit()
     exePATH=args.exe
     bam=args.bam
     level=args.level

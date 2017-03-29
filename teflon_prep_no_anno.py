@@ -35,10 +35,11 @@ def repeatMask(wd,RM,ref,cpu,repLib):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-wd',dest='wd',help='full path to working directory')
-    parser.add_argument('-r',dest='repMask',help='full path to RepeatMasker executable')
+    parser.add_argument('-e',dest='repMask',help='full path to RepeatMasker executable')
     parser.add_argument('-g',dest='genome',help='reference genome')
     parser.add_argument('-l',dest='lib',help='repBase library')
     parser.add_argument('-p',dest='pre',help='prefix for all newly created files')
+    parser.add_argument('-r',dest='readLen',help='average read length',type=int)
     parser.add_argument('-n',dest='cpu',help='number of CPUs',type=int,default=1)
     args = parser.parse_args()
 
@@ -55,7 +56,7 @@ def main():
 
     #Rehead the repBase library
     lib_outFILE=os.path.join(prep_RM_DIR,os.path.basename(args.lib).replace(".ref",".rehead.ref"))
-    rh.reheadRepBaseLib_portal(args.lib,lib_outFILE)
+    rh.reheadRepBaseLib_portal(args.lib,lib_outFILE) #Try without rehead
     #Mask the reference
     masked_faFILE=os.path.join(prep_RM_DIR,os.path.basename(args.genome)+".masked")
     if not os.path.exists(masked_faFILE):
@@ -63,7 +64,7 @@ def main():
 
     #Create annotation.bed
     RM_bedFILE=os.path.join(prep_RM_DIR,args.pre+".bed")
-    rep2bed.rep2bed_portal(masked_faFILE.replace(".masked",".out"),RM_bedFILE)
+    rep2bed.rep2bed_portal(masked_faFILE.replace(".masked",".out"),RM_bedFILE,args.readLen)
 
     #Create hierarchy.txt
     RM_hierFILE=os.path.join(prep_TF_DIR,args.pre+".hier")
@@ -82,7 +83,7 @@ def main():
     mapRef=os.path.join(prep_MP_DIR,args.pre+".mappingRef.fa")
     if not os.path.exists(mapRef):
         print "Concatonating reference and TE sequences"
-        os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,args.pre+".RM.annotatedTE.fa"),lib_outFILE,mapRef))
+        os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,args.pre+".annotatedTE.fa"),lib_outFILE,mapRef))
     else:
         print "Mapping Reference exists:", mapRef
     print "Reference prep complete."

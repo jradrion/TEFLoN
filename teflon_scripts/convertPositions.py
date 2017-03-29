@@ -1,5 +1,5 @@
 '''convert a bed file with coordinates from a true reference genome to the pseudo genome'''
-
+import sys
 def convertPositions_portal(bedFILE,mapFILE,outFILE):
     print "reading map"
     pseudoMap={}

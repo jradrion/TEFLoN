@@ -12,9 +12,9 @@ def rep2hier_portal(repBase,inFILE,outFILE):
                 ID.append(line[1:].replace("\n",""))
 
     with open(outFILE, "w") as fOUT:
-        fOUT.write("%s\t%s\t%s\n" %("id","family","superfamily"))
+        fOUT.write("%s\t%s\t%s\n" %("id","hier_level_1","hier_level_2"))
         for i in range(len(ID)):
-            if len(ID[i].split(".")) == 3:
+            if len(ID[i].split(".")) > 2:
                 fOUT.write("%s\t%s\t%s\n" %(ID[i], ID[i].split(".")[1], ID[i].split(".")[2]))
             else:
                 fOUT.write("%s\t%s\t%s\n" %(ID[i], ID[i].split(".")[0], ID[i].split(".")[1]))
