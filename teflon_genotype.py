@@ -150,7 +150,7 @@ def main():
         #print outCounts
         pt.pt_portal(genoDir,samples, posMap, stats)
     else:
-        print "coming soon... Use "pooled" for temporary read counts"
+        print """coming soon... Use "pooled" for temporary read counts"""
     print "finished genotyping"
 
 if __name__ == "__main__":

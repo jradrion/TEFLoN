@@ -38,13 +38,12 @@ def main():
     #Generate reference in pseudospace
     pseudoRefFILE=os.path.join(prep_MP_DIR,args.pre+".pseudo.fa")
     if not os.path.exists(pseudoRefFILE):
-        #pg.pseudo_generate_portal(RM_bedFILE,masked_faFILE.replace(".masked",""),prep_MP_DIR,prep_TF_DIR,args.pre)
-        pg.pseudo_generate_portal(args.anno,args.genome,prep_MP_DIR,prep_TF_DIR,args.pre)
+        pickle = pg.pseudo_generate_portal(args.anno,args.genome,prep_MP_DIR,prep_TF_DIR,args.pre)
     else:
         print "Reference in pseudospace already exists:", pseudoRefFILE
 
     #Convert annotation.bed to pseudospace
-    cp.convertPositions_portal(args.anno,os.path.join(prep_TF_DIR,args.pre+".ref2pseudoMap.txt"),os.path.join(prep_TF_DIR,args.pre+".te.pseudo.bed"))
+    cp.convertPositions_portal(args.anno,pickle,os.path.join(prep_TF_DIR,args.pre+".te.pseudo.bed"))
 
     #Cat pseudoRef RM.annotatedTE.fa and
     mapRef=os.path.join(prep_MP_DIR,args.pre+".mappingRef.fa")

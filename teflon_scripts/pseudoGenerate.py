@@ -1,7 +1,8 @@
 '''generates a pseudo genome by removing all positions specified in the given .bed file
 also creates a file of pseudo genome sizes and maps between the pseudo and true reference'''
 
-import os
+import os, sys, gzip, json
+import cPickle as pickle
 def fastaformat(seq):
     '''returns a string where every 70 bases is separated by a new line'''
     seq=seq.upper()
@@ -86,10 +87,10 @@ def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
         for x in extractedSeqs:
             fOUT.write(">%s\n%s\n" %(x,fastaformat(extractedSeqs[x])))
 
-    with open(outFILE, "w") as fOUT1, open(os.path.join(prep_TF_DIR,pre+".genomeSize.txt"), 'w') as fOUT2, open(os.path.join(prep_TF_DIR,pre+".pseudo2refMap.txt"),"w") as fOUT3, open(os.path.join(prep_TF_DIR,pre+".ref2pseudoMap.txt"),"w") as fOUT4:
+    with open(outFILE, "w") as fOUT1, open(os.path.join(prep_TF_DIR,pre+".genomeSize.txt"), 'w') as fOUT2:
         print "Writing genome size file:",os.path.join(prep_TF_DIR,pre+".genomeSize.txt")
-        print "Writing pseudospace to refspace conversion map:",os.path.join(prep_TF_DIR,pre+".pseudo2refMap.txt")
-        print "Writing refspace to pseudospace conversion map:",os.path.join(prep_TF_DIR,pre+".ref2pseudoMap.txt")
+        print "Writing pseudospace to refspace conversion map:",os.path.join(prep_TF_DIR,pre+".pseudo2ref.pickle.gz")
+        print "Writing refspace to pseudospace conversion map:",os.path.join(prep_TF_DIR,pre+".ref2pseudo.pickle.gz")
         print "Writing reference in pseudospace:",outFILE
         for x in chroms:
             for ch in genome:
@@ -97,14 +98,13 @@ def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
                     fOUT1.write(">"+ch+"\n")
                     fOUT1.write(fastaformat("".join(genome[ch]))+"\n")
                     fOUT2.write(ch+"\t1\t"+str(len(genome[ch]))+"\n")
-                    fOUT3.write(">"+ch+"\n")
-                    fOUT3.write(",".join([str(x) for x in pseudoMap[ch]])+"\n")
-                    fOUT4.write(">"+ch+"\n")
-                    fOUT4.write(",".join([str(x) for x in refMap[ch]])+"\n")
 
+    pickle.dump(pseudoMap, gzip.open(os.path.join(prep_TF_DIR,pre+".pseudo2ref.pickle.gz"), "wb"))
+    pickle.dump(refMap, gzip.open(os.path.join(prep_TF_DIR,pre+".ref2pseudo.pickle.gz"), "wb"))
+    return refMap
 
 def pseudo_generate_portal(bed,genome,prep_MP_DIR,prep_TF_DIR,pre):
-    removeBedPos(bed,genome,prep_MP_DIR,prep_TF_DIR,pre)
+    return removeBedPos(bed,genome,prep_MP_DIR,prep_TF_DIR,pre)
 
 
 

@@ -1,15 +1,7 @@
 '''convert a bed file with coordinates from a true reference genome to the pseudo genome'''
-import sys
 def convertPositions_portal(bedFILE,mapFILE,outFILE):
-    print "reading map"
-    pseudoMap={}
-    with open(mapFILE, 'r') as fIN:
-        for line in fIN:
-            if line.startswith(">"):
-                chrom=line.replace("\n","").replace(">","")
-            else:
-                pseudoMap[chrom]=[int(x) for x in line.split(",")]
-    print "converting bed"
+    pseudoMap=mapFILE
+    print "Converting "+bedFILE+" to pseudospace ..."
     with open(bedFILE, 'r') as fIN, open(outFILE, 'w') as fOUT:
         for line in fIN:
             ls=line.split()
