@@ -51,8 +51,8 @@ Important output files:
 * /usr/local/prep_TF/prefix.te.pseudo.bed
 * /usr/local/prep_TF/prefix.genomeSize.txt
 * /usr/local/prep_TF/prefix.hier
-* /usr/local/prep_TF/prefix.pseudo2refMap.txt
-* /usr/local/prep_TF/prefix.ref2pseudoMap.txt
+* /usr/local/prep_TF/prefix.pseudo2ref.pickle.gz
+* /usr/local/prep_TF/prefix.ref2pseudo.pickle.gz
 * /usr/local/prep_MP/prefix.mappingRef.fa
 
 Step 2) Index the prepped reference genome. 
@@ -132,14 +132,9 @@ NOTE: Currently haploid and diploid data types are under construction!
 ```
 usage: python usr/local/teflon_genotype.py <required> [optional]
     -wd <full path to working directory>
-    -ex <full path to samtools executable>
-    -g <full path to genomeSize.txt>
     -s <full path to samples.txt>
-    -a <full path to te.psuedo.bed>
-    -t <full path to TE hierarchy file>
-    -pm <full path to psuedo2refMap.txt file>
-    -dt <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
-    -x [number of threads]
+    -p <full path to psuedo2ref.pickle.gz file>
+    -t <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
 ```
 
 ### Output

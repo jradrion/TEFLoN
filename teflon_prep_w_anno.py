@@ -11,7 +11,7 @@ from teflon_scripts import reheadRepBaseLib as rh
 from teflon_scripts import repeatMaskerOut2Bed as rep2bed
 from teflon_scripts import repeatMaskerOut2hierarchy as rep2hier
 from teflon_scripts import pseudoGenerate as pg
-from teflon_scripts import convertPositions as cp
+from teflon_scripts import ref2pseudoConvert as r2pC
 
 def main():
     parser = argparse.ArgumentParser()
@@ -43,7 +43,7 @@ def main():
         print "Reference in pseudospace already exists:", pseudoRefFILE
 
     #Convert annotation.bed to pseudospace
-    cp.convertPositions_portal(args.anno,pickle,os.path.join(prep_TF_DIR,args.pre+".te.pseudo.bed"))
+    r2pC.ref2pseudoConvert_portal(RM_bedFILE,pickle,os.path.join(prep_TF_DIR,args.pre+".te.pseudo.bed"))
 
     #Cat pseudoRef RM.annotatedTE.fa and
     mapRef=os.path.join(prep_MP_DIR,args.pre+".mappingRef.fa")

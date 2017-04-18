@@ -1,7 +1,7 @@
 '''generates a pseudo genome by removing all positions specified in the given .bed file
 also creates a file of pseudo genome sizes and maps between the pseudo and true reference'''
 
-import os, sys, gzip, json
+import os, sys, gzip
 import cPickle as pickle
 def fastaformat(seq):
     '''returns a string where every 70 bases is separated by a new line'''
@@ -99,8 +99,11 @@ def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
                     fOUT1.write(fastaformat("".join(genome[ch]))+"\n")
                     fOUT2.write(ch+"\t1\t"+str(len(genome[ch]))+"\n")
 
+    print "Dumping pickles..."
     pickle.dump(pseudoMap, gzip.open(os.path.join(prep_TF_DIR,pre+".pseudo2ref.pickle.gz"), "wb"))
+    print os.path.join(prep_TF_DIR,pre+".pseudo2ref.pickle"), "dumped!"
     pickle.dump(refMap, gzip.open(os.path.join(prep_TF_DIR,pre+".ref2pseudo.pickle.gz"), "wb"))
+    print os.path.join(prep_TF_DIR,pre+".ref2pseudo2.pickle"), "dumped!"
     return refMap
 
 def pseudo_generate_portal(bed,genome,prep_MP_DIR,prep_TF_DIR,pre):

@@ -14,7 +14,10 @@ def wb_portal(ID, union, samples, tmpDir, exePATH, qual):
     outBED = os.path.join(tmpDir, "union_%s.bed" %(str(ID)))
     with open(outBED, 'w') as fOUT:
         for line in bed:
-            fOUT.write("\t".join([str(x) for x in line]) + "\n")
+            try:
+                fOUT.write("\t".join([str(x) for x in line]) + "\n")
+            except IOError:
+                continue
 
     # 2. samtools view > sample.sam
     for sample in samples:
@@ -26,8 +29,8 @@ def wb_portal(ID, union, samples, tmpDir, exePATH, qual):
             perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
             #print perr
             if p.returncode != 0:
-                print "error running samtools"
-                sys.exit(1)
+                print "Error running samtools: p.returncode =",p.returncode
+                continue
         except OSError:
             print "Cannot run samtools"
             sys.exit(1)

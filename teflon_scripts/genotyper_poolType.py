@@ -24,7 +24,7 @@ def fq(line):
         return round(int(line[9])/float(int(line[9]) + int(line[10])), 3)
 
 
-def pt_portal(genoDir, samples, posMap, stats):
+def pt_portal(genoDir, samples, posMap, stats, p2rC):
     readLen=stats[0]
     cts=[]
     for i in range(len(samples)):
@@ -64,11 +64,13 @@ def pt_portal(genoDir, samples, posMap, stats):
                 skip.append(i)
             outCall.append(tmp)
         for i in range(len(cts)):
-            outFILE=os.path.join(genoDir,samples[i][1]+".genotypes.txt")
-            with open(outFILE, "w") as fOUT:
+            outFILE1=os.path.join(genoDir,samples[i][1]+".pseudoSpace.genotypes.txt")
+            with open(outFILE1, "w") as fOUT:
                 for j in range(len(cts[i])):
                     if j not in skip:
                         fOUT.write("\t".join([str(x) for x in cts[i][j]])+"\t%s\n" %(str(outCall[j][i])))
+            outFILE2=os.path.join(genoDir,samples[i][1]+".refSpace.genotypes.txt")
+            p2rC.pseudo2refConvert_portal(outFILE1,posMap,outFILE2)
 
 
 

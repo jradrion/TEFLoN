@@ -298,9 +298,15 @@ def countReads_portal(ID, union, samples, tmpDir, annotation):
     for i in range(len(samples)):
         reads=[]
         samFILE = os.path.join(tmpDir, "union_%s.%s.sam" %(str(ID),str(samples[i][1])))
-        with open(samFILE, 'r') as fIN:
-            for line in fIN:
-                reads.append(line.split())
+        try:
+            with open(samFILE, 'r') as fIN:
+                try:
+                    for line in fIN:
+                        reads.append(line.split())
+                except IOError:
+                    continue
+        except IOError:
+            continue
         if not reads:
             counts.append([0,0,0]) #[# presence support reads, # absence support reads, # non-informative reads]
         else:
