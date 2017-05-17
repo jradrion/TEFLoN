@@ -122,28 +122,18 @@ def ct_type0(reads, union, annotation):
             r_clip.append(int(read[3]))
     if f_clip:
         F=mode(f_clip)
-        redefinedF=F
     if r_clip:
         R=mode(r_clip)
-        redefinedR=R
     if F == "":
         if F_anno:
             F=F_anno
         else:
             F=int(union[1])
-        #elif union[1].isdigit():
-        #    F=int(union[1])
-        #else:
-        #    F=int(union[2])
     if R == "":
         if R_anno:
             R=R_anno
         else:
             R=int(union[2])
-        #elif union[2].isdigit():
-        #    R=int(union[2])
-        #else:
-        #    R=int(union[1])
     return ct_type1FR(reads, F, R)
 
 def ct_type1FR(reads, F, R):
@@ -152,10 +142,10 @@ def ct_type1FR(reads, F, R):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "FB" in read[6]: # change to incorporate given te chromosomes names from database
+            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and read[6] != "-":
                 #print read[0], "\t", "p"
                 cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and "FB" in read[6]: # change to incorporate given te chromosomes names from database
+            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and read[6] != "-":
                 #print read[0], "\t", "p"
                 cts[0]+=1
             elif int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
@@ -190,10 +180,10 @@ def ct_type1F(reads, F, R):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "FB" in read[6]: # change to incorporate given te chromosomes names from database
+            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and read[6] != "-":
                 #print read[0], "\t", "p"
                 cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and "FB" in read[6]: # change to incorporate given te chromosomes names from database
+            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and read[6] != "-":
                 #print read[0], "\t", "p"
                 cts[0]+=1
             elif int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
@@ -229,10 +219,10 @@ def ct_type1R(reads, F, R):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "FB" in read[6]: # change to incorporate given te chromosomes names from database
+            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and read[6] != "-":
                 #print read[0], "\t", "p"
                 cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and "FB" in read[6]: # change to incorporate given te chromosomes names from database
+            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and read[6] != "-":
                 #print read[0], "\t", "p"
                 cts[0]+=1
             elif int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:

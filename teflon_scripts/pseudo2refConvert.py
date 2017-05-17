@@ -1,5 +1,4 @@
 import sys
-
 def gapFlanks(ch,pos,psmap,FR):
     for i in range(int(pos)-4,int(pos)+5):
         if psmap[ch][i+1] - psmap[ch][i] > 1:
@@ -14,8 +13,9 @@ def isGap(ch,pos,psmap):
     """if there is a gap near the position to be transformed
     return the left most position of the gap for a forward read and the rightmost for a reverse read
     else, return the normal transformation of the position"""
-    if abs(psmap[ch][int(pos)+5] - psmap[ch][int(pos)-4]) > 10:
-        #print psmap[ch][int(pos)-4], psmap[ch][int(pos)+5],
+    if int(pos)+5 > len(psmap[ch]) or int(pos)-4 < 0:
+        return 0
+    elif abs(psmap[ch][int(pos)+5] - psmap[ch][int(pos)-4]) > 10:
         return 1
     else:
         return 0

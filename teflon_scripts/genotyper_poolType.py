@@ -35,8 +35,8 @@ def pt_portal(genoDir, samples, posMap, stats, p2rC):
                 tmp.append(line.split())
         cts.append(tmp)
     if len(samples) == 1:
-        c_thresh=samples[0][2][3]+(10*samples[0][2][4])
-        print "c_thresh:",c_thresh
+        c_thresh=samples[0][2][3]+(4*samples[0][2][4])
+        print "coverage_threshold:",c_thresh
         outFILE=os.path.join(genoDir,samples[0][1]+".genotypes.txt")
         with open(outFILE, "w") as fOUT:
             for j in range(len(cts[0])):
@@ -46,8 +46,8 @@ def pt_portal(genoDir, samples, posMap, stats, p2rC):
         skip=[]
         c_thresh=[]
         for sample in samples:
-            c_thresh.append(sample[2][3] + (10*sample[2][4]))
-        print "c_thresh", c_thresh
+            c_thresh.append(sample[2][3] + (4*sample[2][4]))
+        print "coverage_threshold", c_thresh
         outCall=[]
         for i in range(len(cts[0])):
             tmp=[]

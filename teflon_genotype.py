@@ -24,7 +24,7 @@ def main():
         sys.exit()
 
     #load pseudo2ref.pickle
-    print "loading",args.pickle
+    print "loading",args.pickle,"..."
     posMap=pickle.load(gzip.open(args.pickle, "rb"))
     print args.pickle,"loaded"
 
