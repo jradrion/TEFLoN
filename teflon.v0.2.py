@@ -25,12 +25,12 @@ def mkdir_if_not_exist(*dirs):
             os.makedirs(dir)
             print "creating directory: %s" %(dir)
 
-def check_samtools(exePATH):
+def check_dependency(exeSAM):
     try:
-        cmd = "%s" %(exePATH)
+        cmd = "%s" %(exeSAM)
         p = sp.Popen(shlex.split(cmd), stdout=sp.PIPE, stderr=sp.PIPE)
     except OSError:
-        print "Cannot find samtools"
+        print "Cannot find %s" %(exeSAM)
         sys.exit(1)
 
 def assign_task(siteID, task_q, nProcs):
@@ -62,7 +62,7 @@ def worker(task_q, params):
         try:
             groups, nth_job = task_q.get()
             #unpack parameters
-            annotation, bam, chromosomes, exePATH, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir = params
+            annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir = params
             for group in groups:
                 levelIndex=label.index(level)
                 clustIndex=label.index(cLevel)
@@ -76,7 +76,7 @@ def worker(task_q, params):
                 # 2. samtools view > complete.sam
                 try:
                     samFile_complete = os.path.join(samDir, "%s_complete.sam" %(group))
-                    cmd = "%s view %s -L %s/%s_complete.bed" %(exePATH, bam, bedDir, group)
+                    cmd = "%s view %s -L %s/%s_complete.bed" %(exeSAM, bam, bedDir, group)
                     print "cmd:", cmd
                     p = sp.Popen(shlex.split(cmd), stdout=open(samFile_complete, 'w'), stderr=sp.PIPE)
                     perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
@@ -94,7 +94,7 @@ def worker(task_q, params):
                 #4. samtools view > clustered.sam
                 try:
                     samFile_clust = os.path.join(samDir, "%s_clustered.sam" %(group))
-                    cmd = "%s view %s -q %s -L %s/%s_clustered.bed" %(exePATH, bam, qual, bedDir, group)
+                    cmd = "%s view %s -q %s -L %s/%s_clustered.bed" %(exeSAM, bam, qual, bedDir, group)
                     print "cmd:", cmd
                     p = sp.Popen(shlex.split(cmd), stdout=open(samFile_clust, 'w'), stderr=sp.PIPE)
                     # communicate returns a tuple (stdout, stderr)
@@ -115,7 +115,8 @@ def worker(task_q, params):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-wd',dest='wd',help='full path to working directory')
-    parser.add_argument('-ex',dest='exe',help='full path to samtools executable')
+    parser.add_argument('-eb',dest='exeBWA',help='full path to bwa executable')
+    parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable')
     parser.add_argument('-g',dest='genome',help='genomeSize file')
     parser.add_argument('-s',dest='samples',help='samples file')
     parser.add_argument('-b',dest='bam',help='full path to indexed bam file')
@@ -130,14 +131,16 @@ def main():
     args = parser.parse_args()
 
     wd=os.path.realpath(args.wd)
-    exePATH=args.exe
+    exeSAM=args.exeSAM
+    exeBWA=args.exeBWA
     bam=args.bam
     level=args.level
     cLevel=args.cLevel
     qual=args.qual
 
-    #check samtools executabe for function
-    check_samtools(exePATH)
+    #check dependencies for function
+    check_dependency(exeSAM)
+    check_dependency(exeBWA)
 
     #groups=[id,family,superfamily,suborder,order,class]
     hierarchy,label={},[]
@@ -181,20 +184,20 @@ def main():
     #run stats and read results
     statsOutFile = bam.replace(".bam", ".stats.txt")
     #print "Calculating alignment statistics"
-    cmd = "%s stats %s" %(exePATH, bam)
-    print cmd
-    p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
-    perr = p.communicate()[1]
-    if p.returncode != 0:
-        print "samtools stats issued error: %s" %(perr)
-        sys.exit(1)
+    #cmd = "%s stats %s" %(exeSAM, bam)
+    #print cmd
+    #p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
+    #perr = p.communicate()[1]
+    #if p.returncode != 0:
+    #    print "samtools stats issued error: %s" %(perr)
+    #    sys.exit(1)
 
     #calculate coverage
     covFILE = bam.replace(".bam", ".cov.txt")
-    #print covFILE
-    cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exePATH, str(qual), bam, covFILE)
-    print cmd
-    os.system(cmd)
+    ##print covFILE
+    #cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exeSAM, str(qual), bam, covFILE)
+    #print cmd
+    #os.system(cmd)
 
     #read stats file
     with open(statsOutFile, 'r') as fIN:
@@ -239,7 +242,7 @@ def main():
     #groups= ["1360"] #debug single family
     print "Groups:", groups
     task_q = mp.JoinableQueue()
-    params=[annotation, bam, chromosomes, exePATH, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
+    params=[annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
     create_procs(args.nProc, task_q, params)
     assign_task(groups, task_q, args.nProc)
     try:

@@ -22,7 +22,7 @@ def isGap(ch,pos,psmap):
 
 def pseudo2refConvert_portal(bedFILE,pseudo2refMap,outFILE):
     pseudoMap=pseudo2refMap
-    print "converting bed"
+    print "Converting coordinates from pseudospace to reference-based coordinates..."
     with open(bedFILE, 'r') as fIN, open(outFILE, 'w') as fOUT:
         for line in fIN:
             ls=line.split()

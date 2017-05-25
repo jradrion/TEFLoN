@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Feb 12 14:50:53 2016
-
-@author: jeffreyadrion
-
-cluster positions for the set of all reads that have a paired end which aligns to a particular family
-
-"""
-
 import os
 
 def bitFlag(flag):
@@ -110,7 +100,7 @@ def parseSuppAlign(line, chromosomes, qual):
 	return[arr[0],pos,support_side,line.split()[0]]
 
 def cluster_positions_portal(sam, group, chromosomes, lengths, readLen, insz, sd, bedDir, qual, suppOutFile):
-    #record position of all paired ends that map to a te
+    # record position of all paired ends aligning to TEs
     leftpos=[]
     with open(sam, 'r') as fIN, open(suppOutFile, 'w') as fOUT:
         for line in fIN:
@@ -120,7 +110,7 @@ def cluster_positions_portal(sam, group, chromosomes, lengths, readLen, insz, sd
             if arr[6] in chromosomes:
                 leftpos.append([arr[6],int(arr[7])])
         lpos=sorted(leftpos, key = lambda x: (x[0],x[1]))
-        #cluster positions of all paired ends that map to a te
+        # cluster positions
         clusters=[]
         for i in range(len(chromosomes)):
             temp=[]
@@ -132,9 +122,11 @@ def cluster_positions_portal(sam, group, chromosomes, lengths, readLen, insz, sd
             else:
                 clusters.append([])
 
-    #write all supplementary alignments
+    # write positions
     bedOutFile = os.path.join(bedDir, "%s_clustered.bed" %(group))
-    with open(bedOutFile, 'w') as fOUT:
+    megaOutFile = os.path.join(bedDir, "mega_clustered.bed")
+    with open(bedOutFile, 'w') as fOUT1, open(megaOutFile, "a") as fOUT2:
         for i in xrange(len(clusters)):
             for j in xrange(len(clusters[i])):
-                fOUT.write(chromosomes[i]+'\t'+str(clusters[i][j][0])+'\t'+str(clusters[i][j][-1]+readLen)+'\n')
+                fOUT1.write(chromosomes[i]+'\t'+str(clusters[i][j][0])+'\t'+str(clusters[i][j][-1]+readLen)+'\n')
+                fOUT2.write(chromosomes[i]+'\t'+str(clusters[i][j][0])+'\t'+str(clusters[i][j][-1]+readLen)+'\n')

@@ -7,17 +7,14 @@ import shutil
 teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
-from teflon_scripts import sort_positions as sortp
-from teflon_scripts import collapse_union as cu
-from teflon_scripts import mean_stats as ms
 from teflon_scripts import genotyper_writeBed as wb
 from teflon_scripts import genotyper_countReads as cr
-from teflon_scripts import genotyper_poolType as pt
+from teflon_scripts import reduceSearchSpace as rss
 
-def check_samtools(exePATH):
+def check_dependency(exePATH):
     try:
         cmd = "%s" %(exePATH)
-        p = sp.Popen(shlex.split(cmd), stdout=sp.PIPE, stderr=sp.PIPE)
+        sp.Popen(shlex.split(cmd), stdout=sp.PIPE, stderr=sp.PIPE)
     except OSError:
         print "Cannot find samtools"
         sys.exit(1)
@@ -55,17 +52,23 @@ def worker(task_q, result_q, params):
         try:
             siteID, nth_job = task_q.get()
             #unpack parameters
-            genoDir, tmpDir, exePATH, union, samples, qual, annotation = params
+            genoDir, tmpDir, exePATH, union, samples, qual, hierarchy, label, l2, annotation = params
             tmp=[]
             for ID in siteID:
                 #print union[ID]
                 # 1. write sam files for all samples
-                wb.wb_portal(ID, union, samples, tmpDir, exePATH, qual)
+                samFILE = wb.wb_portal(ID, union, samples, tmpDir, exePATH, qual)
                 # 2. count support and non support reads for each event
-                #print "counting support reads: siteID", ID
-                counts = cr.countReads_portal(ID, union, samples, tmpDir, annotation) # counts = [[#p(sample1),#a(sample1),#NA(sample1)],[#p(sampleN),#a(sampleN),#NA(sampleN)]]
-                print ID, counts, union[ID]
-                tmp.append([ID,counts])
+                counts = cr.countReads_portal(ID, union, samples, tmpDir, samFILE, hierarchy, label, l2, annotation) # counts = [[#p(sample1),#a(sample1),#NA(sample1)],[#p(sampleN),#a(sampleN),#NA(sampleN)]]
+                if counts[1]!="-":
+                    union[ID][1]=counts[1]
+                    union[ID][7]="+"
+                if counts[2]!="-":
+                    union[ID][2]=counts[2]
+                    union[ID][8]="+"
+                union[ID].extend(ct for ct in counts[0])
+                print "Finished:",union[ID]
+                tmp.append([ID,union[ID]])
             #print "result put",tmp
             result_q.put(tmp)
         finally:
@@ -73,53 +76,69 @@ def worker(task_q, result_q, params):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-wd',dest='wd',help='full path to working directory')
-    parser.add_argument('-ex',dest='exe',help='full path to samtools executable')
-    parser.add_argument('-g',dest='genome',help='genomeSize file')
-    parser.add_argument('-b',dest='bam',help='bam file for focal sample')
-    parser.add_argument('-s',dest='samples',help='tab delimited text file of full path to bam files')
-    parser.add_argument('-a',dest='annotation',help='full path to pseudo-transformed bedFILE')
-    parser.add_argument('-t',dest='te_hierarchy',help='full path to te hierarchy file')
+    parser.add_argument('-wd',dest='wd',help='full path to working directory',default=-1)
+    parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
+    parser.add_argument('-s',dest='samples',help='samples file')
+    parser.add_argument('-i',dest='ID',help='unique id of this sample')
+    parser.add_argument('-eb',dest='exeBWA',help='full path to bwa executable')
+    parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable')
+    parser.add_argument('-l2',dest='cLevel',help='level of hierarchy to cluster')
     parser.add_argument('-q',dest='qual',help='map quality threshold',type=int)
-    parser.add_argument("-x", dest="nProc", type=int, default=4, help="Specify number of processes")
+    parser.add_argument("-t", dest="nProc", type=int, default=4, help="Specify number of processes")
     args = parser.parse_args()
 
-    wd=os.path.realpath(args.wd)
-    exePATH=args.exe
+    # identify current working directory
+    if args.wd == -1:
+        cwd=os.getcwd()
+    else:
+        cwd=os.path.realpath(args.wd)
+
+    # import options
+    prep_TF=args.DIR
+    prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+    exeSAM=args.exeSAM
+    exeBWA=args.exeBWA
     qual=args.qual
     nProc=args.nProc
 
-    #check samtools executabe for function
-    check_samtools(exePATH)
+    #check dependencies for function
+    check_dependency(exeSAM)
+    check_dependency(exeBWA)
 
-    #groups=[id,family,superfamily,suborder,order,class]
+    # import hierarchy
+    l2=args.cLevel
+    hierFILE=os.path.join(prep_TF,prefix+".hier")
     hierarchy,label={},[]
-    with open(args.te_hierarchy, 'r') as fIN:
+    with open(hierFILE, 'r') as fIN:
         for line in fIN:
             if line.startswith('id'):
                 label=line.split()[1:]
             if not line.startswith('id'):
                 hierarchy[line.split()[0]] = line.split()[1:]
 
-    annotation=[]
-    with open(args.annotation, 'r') as fIN:
+    # read annotation
+    annotation={}
+    with open(os.path.join(prep_TF,prefix+".te.pseudo.bed"), 'r') as fIN:
         for line in fIN:
             arr=line.split()
-            annotation.append([arr[0],int(arr[1]),int(arr[2]),arr[3]])
+            annotation[arr[3]]=[arr[0],int(arr[1]),int(arr[2])]
 
+    # read chromosome lengths
     chromosomes,lengths=[],[]
-    with open(args.genome, 'r') as fIN:
+    with open(os.path.join(prep_TF,prefix+".genomeSize.txt"), 'r') as fIN:
         for line in fIN:
             arr=line.split()
             chromosomes.append(arr[0])
             lengths.append(int(arr[2]))
 
+    # read samples and stats
     samples=[]
-    #each sample will be [path to sorted_position.txt, path to bamFILE, uniqueID, stats]
     with open(args.samples, 'r') as fIN:
         for line in fIN:
-            if line.split()[0] == args.bam:
-                statsFILE = line.split()[0].replace(".bam", ".stats.txt")
+            bamFILE = line.split()[0].replace(".bam",".subsmpl.bam")
+            #if bamFILE == args.bam:
+            if line.split()[1] == args.ID:
+                statsFILE = bamFILE.replace(".bam", ".stats.txt")
                 pre=line.split()[1]
                 with open(statsFILE, 'r') as fIN:
                     for l in fIN:
@@ -129,27 +148,33 @@ def main():
                             insz=int(float(l.split()[-1]))
                         if 'insert size standard deviation' in l:
                             sd=int(float(l.split()[-1]))
-                samples.append([line.split()[0], line.split()[1], [readLen, insz, sd]])
+                samples.append([bamFILE, pre, [readLen, insz, sd]])
 
-
-
-    #create the genotype directory
-    genoDir = os.path.join(wd,"finalPos")
-    tmpDir = os.path.join(wd,pre+".tmp")
+    # create the genotype directory
+    genoDir = os.path.join(cwd,"finalPos")
+    tmpDir = os.path.join(cwd,pre+".tmp")
     mkdir_if_not_exist(genoDir, tmpDir)
 
+    # read positions to search
     union=[]
-    with open(os.path.join(wd,"initialPos","union_sorted.collapsed.txt"), "r") as fIN:
+    with open(os.path.join(cwd,"initialPos","union_sorted.collapsed.txt"), "r") as fIN:
         for line in fIN:
             union.append(line.split())
 
+    # reduce search space
+    samples[0][0]=rss.reduceSearchSpace_portal(union,samples,tmpDir,exeSAM,qual,nProc)
+    # index new reduced alignment
+    cmd="%s index %s" %(exeBWA,samples[0][0])
+    print "cmd:", cmd
+    os.system(cmd)
 
-    #partition data for multiprocessing
+    # partition data for multiprocessing
     siteID = range(len(union))
     task_q = mp.JoinableQueue()
     result_q = mp.Queue()
-    params=[genoDir, tmpDir, exePATH, union, samples, qual, annotation]
-    #do the work boyeeee!
+    params=[genoDir, tmpDir, exeSAM, union, samples, qual, hierarchy, label, l2, annotation]
+
+    # do the work boyeeee!
     print "counting reads..."
     create_procs(nProc, task_q, result_q, params)
     assign_task(siteID, task_q, nProc)
@@ -165,24 +190,19 @@ def main():
             #print "result get",x
             outCounts.extend(y for y in x)
             nProc-=1
-        print "finished counting reads"
     cts=sorted(outCounts)
-    #print len(cts), len(union)
-    #sys.exit()
+
+    # write the results
     for i in range(len(samples)):
         outFILE=os.path.join(genoDir,samples[i][1]+".counts.txt")
         with open(outFILE, "w") as fOUT:
-            for j in range(len(union)):
-                fOUT.write("\t".join([str(x) for x in union[j]])+"\t%s\n" %("\t".join([str(y) for y in cts[j][1][0]])))
+            for j in range(len(cts)):
+                fOUT.write("\t".join([str(y) for y in cts[j][1]])+"\n")
 
-    #remove directory with beds/sams
+    # remove directory with beds/sams
     shutil.rmtree(tmpDir)
 
-
-
-
-
-
+    print "TEFLON COUNT FINISHED!"
 
 if __name__ == "__main__":
 	main()

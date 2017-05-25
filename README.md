@@ -18,14 +18,14 @@ Sample files are provided to ensure TEFLoN and its dependencies are running corr
 ### Data prep
 Step 1a) If you have a reference TE annotation in BED format, use teflon_prep_w_anno.py to prepare your reference genome for mapping.
 
-NOTE: You must also manually create a file where each entry in the annotation has at least one label (idealy this label would indicate the family or order for each TE instance, but you can use any label you like.)
-TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created hierarchy file.
-The first line of the file must include identifying headers and each ID/label must be separated by a tab.
-A good example of what this hierarchy file should look like is provided in the sample files.
+NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (idealy this label would indicate the family or order for each TE instance, but you can use any label you like.)
+TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created TE hierarchy file.
+The first line of this file must include identifying headers (the header for column of individual TE instances must be "id", the other header labels can be anything and each column must be separated by a tab).
+A good example of what this TE hierarchy file should look like is provided in the sample files.
 
 ```
 usage: python /usr/local/teflon_prep_w_anno.py <required> [optional] 
-    -wd <full path to working directory>
+    -wd [full path to working directory]
     -a <full path to reference TE annotation in BED format> 
     -t <full path to user generated TE hierarchy>
     -g <full path to reference genome in fasta format>
@@ -34,36 +34,29 @@ usage: python /usr/local/teflon_prep_w_anno.py <required> [optional]
 
 Step 1b) If you *do not* have an existing TE annotation in BED format, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
 
-NOTE: In this case you will not need to manually create a hierarchy file, as TEFLoN will automatically create one based on the labels provided in the repBase library.
+NOTE: In this case you will *not* need to manually create a hierarchy file, as TEFLoN will automatically generate one based on the labels provided in the repBase library. However, you may wish to modify this file to include more information than is automatically generated.
 
 ```
 usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
-    -wd <full path to working directory>
-    - <full path to repeatMasker executable> 
+    -wd [full path to working directory]
+    -e <full path to repeatMasker executable> 
     -g <full path to reference genome in fasta format>
-    -l <full path to repBase_library.ref>
+    -r <full path to repBase_library.ref for your organism>
     -p <prefix for all newly created files>
-    -r <average length of sequenced reads>
-    -n [number of threads]
+    -l <approximate length of reads that you will later map> 
+    -d [identify only those repeats < x percent diverged from the consensus seq]
+    -t [number of threads]
 ```
-
-Important output files:
-* /usr/local/prep_TF/prefix.te.pseudo.bed
-* /usr/local/prep_TF/prefix.genomeSize.txt
-* /usr/local/prep_TF/prefix.hier
-* /usr/local/prep_TF/prefix.pseudo2ref.pickle.gz
-* /usr/local/prep_TF/prefix.ref2pseudo.pickle.gz
-* /usr/local/prep_MP/prefix.mappingRef.fa
 
 Step 2) Index the prepped reference genome. 
 ```
-bwa index <prefix.mappingRef.fa>
+bwa index </usr/local/prefix.prep_MP/prefix.mappingRef.fa>
 ```
-Step 3) For each sample, map reads with BWA mem or a similar mapping software package (i.e. one that is able to identify and mark soft-clipped reads).
+Step 3) For each sample, map all reads using BWA mem.
 ```
-bwa mem -t <nThreads> -Y <prefix.mappingRef.fa> <read1.fq> <read2.fq> > alignment.sam
+bwa mem -t <nThreads> -Y </usr/local/prefix.prep_MP/prefix.mappingRef.fa> <read1.fq> <read2.fq> > alignment.sam
 ```
-Step 4) For each sample, sort and then index the alignment produced by BWA.
+Step 4) For each sample, sort and index the alignment produced by BWA.
 ```
 samtools view -Sb <alignment.sam> | samtools sort -@ <nThreads> - -o alignment.sorted.bam
 
@@ -71,8 +64,8 @@ samtools index <alignment.sorted.bam>
 ```
 Note: Ideally, you should have also QC processed your raw reads and removed duplicates from the alignment.
 
-Step 5) Create a .txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam file and a unique prefix/nickname for that sample separated by a tab.
-Currently, this step is necessary even if you are only analyzing a single sample.
+Step 5) Create a .txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam files and a unique prefix/nickname for that sample separated by a tab.
+Note that this step is necessary even if you are only analyzing a single sample.
 
 ```
 Example File:
@@ -83,58 +76,62 @@ Example File:
 You are now ready to proceed to using TEFLoN.
 
 ### Using TEFLoN
-There are four modules to TEFLoN: teflonDiscover, teflonCollapse, teflonCount, and teflonGenotype.
-You must run teflonDiscover and teflonCount seperately for each sample. These modules may run independently for each sample (i.e. you can run all samples simultaneosly with enough threads).
-TeflonCollapse and teflonGenotype only need to run once per analysis.
+There are four modules in TEFLoN: teflon.v0.3, teflon_collapse, teflon_count, and teflon_genotype.
+You must run teflon.v0.3 and teflon_count seperately for each sample. These modules run independently for each sample (i.e. you can run all samples simultaneosly with enough threads).
+Teflon_collapse and teflon_genotype only need to run once per analysis.
 
-Step 1) For each sample, run teflonDiscover.
+Step 1) For each sample, run teflon.v0.3
 ```
-usage: python usr/local/teflon.v0.2.py <required> [optional]
-    -wd <full path to working directory>
-    -ex <full path to samtools executable>
-    -g <full path to genomeSize.txt> #created by teflon_prep
+usage: python usr/local/teflon.v0.3.py <required> [optional]
+    -wd [full path to working directory]
+    -d <full path to usr/local/prefix.prep_TF/>
     -s <full path to samples.txt> #user created
-    -b <full path to sorted and indexed bam file>
-    -a <full path to te.psuedo.bed> #created by teflon_prep
-    -t <full path to TE hierarchy file> #created by teflon_prep
-    -l <level of the hierarchy file to guide initial TE search> #recommended "family" (note: level must appear in the first line of the TE hierarch file)
-    -cl <level of the hierarchy to cluster similar TEs> #can be same "level" of hierarchy used in -l or higher (raising level will reduce the number of TE instances found)
-    -e [newline separated file of any te families to ignore from analysis]
+    -i <unique id for this sample> #must match unique id from samples.txt
+    -eb <full path to BWA executable>
+    -es <full path to samtools executable>
+    -l1 <level of the hierarchy file to guide initial TE search> #it is recommended to use the lowest level in the hierarchy file (i.e. "hier_level_1" for data without user-curated hierarchy)
+    -l2 <level of the hierarchy to cluster similar TEs> #same level of the hierarchy used in -l or higher (clustering at higher levels will reduce the number of TE instances found and improve accuracy in determining the TE type)
     -q <map quality threshold> #mapped reads with map qualities lower than this number will be discarded
-    -sd [int] #use to manually override the insert size sd identified by samtools stat (check this number to ensure it seems more or less correct based on knowledge of sequencing library!)
-    -x [number of threads]
+    -exclude [newline separated file containing thet name of any te families to exclude from analysis] #these names must match names from column -l1 from the hierarchy file
+    -sd [insert size standard deviation] #used to manually override the insert size sd identified by samtools stat (check this number in the generated stats.txt file to ensure it seems more or less correct based on knowledge of sequencing library!)
+    -cov [coverage override] #used to manually override the estimated coverage if you get the error: "Warning: coverage could not be estimated"
+    -t [number of threads]
 ```
 
-Step 2) Run teflonCollapse.
+Step 2) Run teflon_collapse.
 ```
 usage: python usr/local/teflon_collapse.py <required> [optional]
-    -wd <full path to working directory>
+    -wd [full path to working directory]
     -s <full path to samples.txt>
+    -es <full path to samtools executable>
+    -n <TEs must be supported by >= n reads in at least one sample>
+    -q <map quality threshold> #mapped reads with map qualities lower than this number will be discarded
+    -cov [coverage override] #used to manually override the estimated coverage if you get the error: "Warning: coverage could not be estimated"
     -t [number of threads]
 ```
 
 Step 3) For each sample, run teflonCount.
 ```
 usage: python /usr/local/teflon_count.py <required> [optional]
-    -wd <full path to working directory>
-    -ex <full path to samtools executable>
-    -g <full path to genomeSize.txt>
-    -s <full path to samples.txt>
-    -b <full path to sorted and indexed bam file>
-    -a <full path to te.psuedo.bed>
-    -t <full path to TE hierarchy file>
+    -wd [full path to working directory]
+    -d <full path to usr/local/prefix.prep_TF/>
+    -s <full path to samples.txt> #user created
+    -i <unique id for this sample> #must match unique id from samples.txt
+    -eb <full path to BWA executable>
+    -es <full path to samtools executable>
+    -l2 <level of the hierarchy to cluster similar TEs> #this should be the same as -l2 from step 1
     -q <map quality threshold>
-    -x [number of threads]
+    -t [number of threads]
 ```
 
 Step 4) Run teflonGenotype.
 NOTE: Currently haploid and diploid data types are under construction!
 ```
 usage: python usr/local/teflon_genotype.py <required> [optional]
-    -wd <full path to working directory>
-    -s <full path to samples.txt>
-    -p <full path to psuedo2ref.pickle.gz file>
-    -t <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
+    -wd [full path to working directory]
+    -d <full path to usr/local/prefix.prep_TF/>
+    -s <full path to samples.txt> #user created
+    -dt <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
 ```
 
 ### Output
@@ -145,14 +142,14 @@ C2: 5' breakpoint (if available)
 C3: 3' breakpoint (if available)
 C4: search level id
 C5: cluster level id
-C6: strand (currently under construction)
-C7: annotated reference TE id (if available)
+C6: strand (currently under construction, current output is ".")
+C7: annotated reference TE id (if there was a match)
 C8: 5' breakpoint is supported by soft-clipped reads (if TRUE + else -)
 C9: 3' breakpoint is supported by soft-clipped reads (if TRUE + else -)
 C10: read count for "presence reads"
 C11: read count for "absence reads"
 C12: read count for "other reads"
-C13: allele frequency/genotype (fq if pooled data, genotype for haploid/diploid currently under construction)
+C13: allele frequency/genotype (frequency if pooled data, genotype for haploid/diploid currently under construction)
 
 ```
 

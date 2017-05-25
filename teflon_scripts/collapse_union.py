@@ -133,7 +133,7 @@ def collapse(oldlst, readLen, insz, sd, thresh):
     collapsedElements=[]
     preCollapse=[]
     while lst:
-        print "Clustering iterations remaining:", len(lst)
+        #print "Clustering iterations remaining:", len(lst)
         newLst=[]
         tmp=[]
         for i in xrange(len(lst)):

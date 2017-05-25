@@ -1,5 +1,4 @@
 import os, sys
-import multiprocessing as mp
 
 def mean(lst):
     return sum(lst)/float(len(lst))
@@ -52,27 +51,6 @@ def rightMostPos(leftMostPos,opValue):
     '''add M=match/mismatch and D=deletions to left-most position'''
     return int(leftMostPos) + opValue[0]+opValue[2] - 1
 
-def isReference(ch, pos, side, focal_annotation, readLen, insz, sd):
-    '''does insertion support a reference te'''
-    if side == 'F':
-        nearby_tes=[]
-        for i in xrange(len(focal_annotation)):
-            if focal_annotation[i][0] == ch and pos-(readLen/2) <= focal_annotation[i][1] < pos+(insz+(2*sd)):
-                nearby_tes.append([focal_annotation[i][3], focal_annotation[i][1]])
-        sorted_nearby_tes=sorted(nearby_tes, key = lambda x: x[1])
-    elif side == 'R':
-        nearby_tes=[]
-        focal_annotation.reverse()
-        for i in xrange(len(focal_annotation)):
-            if focal_annotation[i][0] == ch and pos+(readLen/2) >= focal_annotation[i][2] > pos-(insz+(2*sd)):
-                nearby_tes.append([focal_annotation[i][3],focal_annotation[i][2]])
-        sorted_nearby_tes=sorted(nearby_tes, key = lambda x: x[1], reverse=True)
-        focal_annotation.reverse()
-    if sorted_nearby_tes:
-        return sorted_nearby_tes[0][0]
-    else:
-        return '-'
-
 def side_clipped(cigar):
     '''which side of the read is clipped?'''
     temp=[]
@@ -88,17 +66,6 @@ def side_clipped(cigar):
     else:
         return ''
 
-def idOrientation(flag):
-    #orientation not accurate
-    #this will effectively exclude orientaton until fixed
-    return "."
-    if bitFlag(int(flag))[4]==0 and bitFlag(int(flag))[5]==0:
-        return '-'
-    elif bitFlag(int(flag))[4]==1 and bitFlag(int(flag))[5]==1:
-        return '-'
-    else:
-        return '+'
-
 def isPrimary(read):
     if bitFlag(int(read[1]))[8]==0 and bitFlag(int(read[1]))[11]==0:
         return 1
@@ -106,14 +73,16 @@ def isPrimary(read):
         return 0
 
 
-def ct_type0(reads, union, annotation):
+def ct_type0(reads, union, TEID, annotation):
     '''Type 0 events are characterized by non-clipped reads flanking both sides of an insertion'''
-    #try to find the breakpoints from clipped reads not aligning to tes
+    """try to find the breakpoints from clipped reads not aligning to tes"""
     F_anno,R_anno="",""
-    for te in annotation:
-        if te[3] == union[6]:
-            F_anno=int(te[1])
-            R_anno=int(te[2])
+    F_flag,R_flag=0,0
+    try:
+        F_anno=annotation[union[6]][1]
+        R_anno=annotation[union[6]][2]
+    except KeyError:
+        F_anno,R_anno="",""
     F,R,f_clip,r_clip="","",[],[]
     for read in reads:
         if "R" in side_clipped(read[5]):
@@ -128,151 +97,180 @@ def ct_type0(reads, union, annotation):
         if F_anno:
             F=F_anno
         else:
+            F_flag=1
             F=int(union[1])
     if R == "":
         if R_anno:
             R=R_anno
         else:
+            F_flag=1
             R=int(union[2])
-    return ct_type1FR(reads, F, R)
+    if F_flag == 0 and R_flag == 0:
+        cts=ct_type1FR(reads, F, R, union, TEID)
+        cts[-2]=F
+        cts[-1]=R
+        return cts
+    elif F_flag == 0 and R_flag == 1:
+        cts=ct_type1F(reads, F, R, union, TEID)
+        cts[-2]=F
+        return cts
+    elif F_flag == 1 and R_flag == 0:
+        cts=ct_type1R(reads, F, R, union, TEID)
+        cts[-1]=R
+        return cts
+    else:
+        return [[0,0,0],"-","-"]
 
-def ct_type1FR(reads, F, R):
+def ct_type1FR(reads, F, R, union, TEID):
     '''Type 1 events are characterized by the F support breakpoint following the R support breakpoint (ie TSD)'''
+    #print "type1FR"
     cts=[0,0,0]
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and read[6] != "-":
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and read[6] != "-":
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
-                #print read[0], "\t", "a"
-                cts[1]+=1
-            elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            else:
-                #print read[0], "\t", "na"
-                cts[2]+=1
+            try:
+                TEID[read[6]]
+                if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot:
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                else:
+                    TEID["EXCEPT!"]
+            except KeyError:
+                if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
+                    #print read[0], "\t", "a"
+                    cts[1]+=1
+                elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                else:
+                    #print read[0], "\t", "na"
+                    cts[2]+=1
         else:
             #print read[0], "\t", "na"
             cts[2]+=1
-    #return [cts, F, R]
-    return cts
+    return [cts,"-","-"]
 
-def ct_type1F(reads, F, R):
-    """Since only the F pos is a known clip you should really only count F reads, this might be a shortcut accomplish this"""
-    R=F-20 #20 used as a conservative estimate for the largest TSD
+def ct_type1F(reads, F, R, union, TEID):
     '''Type 1 events are characterized by the F support breakpoint following the R support breakpoint (ie TSD)'''
+    #print "type1F"
+    if union[6] == "-":
+        R=F-12
+    else:
+        R=F-1
     cts=[0,0,0]
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and read[6] != "-":
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and read[6] != "-":
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
-                #print read[0], "\t", "a"
-                cts[1]+=1
-            elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            else:
-                #print read[0], "\t", "na"
-                cts[2]+=1
+            try:
+                TEID[read[6]]
+                if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot:
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                else:
+                    TEID["EXCEPT!"]
+            except KeyError:
+                if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
+                    #print read[0], "\t", "a"
+                    cts[1]+=1
+                elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                else:
+                    #print read[0], "\t", "na"
+                    cts[2]+=1
         else:
             #print read[0], "\t", "na"
             cts[2]+=1
-    #return [cts, F, R]
-    return cts
+    return [cts,"-","-"]
 
-
-def ct_type1R(reads, F, R):
+def ct_type1R(reads, F, R, union, TEID):
+    #print "type1R"
     """Same with R only"""
-    F=R+20
+    if union[6] == "-":
+        F=R+12
+    else:
+        F=R+1
     '''Type 1 events are characterized by the F support breakpoint following the R support breakpoint (ie TSD)'''
     cts=[0,0,0]
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and read[6] != "-":
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot and read[6] != "-":
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
-                #print read[0], "\t", "a"
-                cts[1]+=1
-            elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                #print read[0], "\t", "p"
-                cts[0]+=1
-            else:
-                #print read[0], "\t", "na"
-                cts[2]+=1
+            try:
+                TEID[read[6]]
+                if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot:
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                else:
+                    TEID["EXCEPT!"]
+            except KeyError:
+                if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
+                    #print read[0], "\t", "a"
+                    cts[1]+=1
+                elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                    #print read[0], "\t", "p"
+                    cts[0]+=1
+                else:
+                    #print read[0], "\t", "na"
+                    cts[2]+=1
         else:
             #print read[0], "\t", "na"
             cts[2]+=1
-    #return [cts, F, R]
-    return cts
+    return [cts,"-","-"]
 
-def ct_type2(reads, union):
-    """test using type1FR, type1F, and type1R
-    if not producing better estimates go back to all statements returning type1FR"""
+def ct_type2(reads, union, TEID):
     '''Type 2 events are characterized by any other event where either one or both sides have evidence for a clipped position'''
-    #if union[7] == "+" and union[8] == "+":
-    #    return ct_type1FR(reads, int(union[1]), int(union[2]))
     if union[7] == "-" and union[8] == "+":
         #return ct_type1FR(reads, int(union[2]), int(union[2]))
-        return ct_type1R(reads, int(union[2]), int(union[2]))
+        return ct_type1R(reads, int(union[2]), int(union[2]), union, TEID)
     elif union[7] == "+" and union[8] == "-":
         #return ct_type1FR(reads, int(union[1]), int(union[1]))
-        return ct_type1F(reads, int(union[1]), int(union[1]))
+        return ct_type1F(reads, int(union[1]), int(union[1]), union, TEID)
     else:
         print "ct_type2 error"
 
-
-def countReads(reads, union, unionType, annotation):
+def countReads(reads, union, unionType, TEID, annotation):
     if unionType == 0:
-        return ct_type0(reads, union, annotation)
+        return ct_type0(reads, union, TEID, annotation)
     elif unionType == 1:
-        return  ct_type1FR(reads, int(union[1]), int(union[2]))
+        return  ct_type1FR(reads, int(union[1]), int(union[2]), union, TEID)
     elif unionType == 2:
-        return ct_type2(reads, union)
-
+        return ct_type2(reads, union, TEID)
 
 def unionType(union):
     if union[7] == "-" and union[8] == "-":
@@ -282,25 +280,18 @@ def unionType(union):
     else:
         return 2
 
-def countReads_portal(ID, union, samples, tmpDir, annotation):
-    #print "element:", union[ID], unionType(union[ID])
-    counts=[]
-    for i in range(len(samples)):
-        reads=[]
-        samFILE = os.path.join(tmpDir, "union_%s.%s.sam" %(str(ID),str(samples[i][1])))
-        try:
-            with open(samFILE, 'r') as fIN:
-                try:
-                    for line in fIN:
-                        reads.append(line.split())
-                except IOError:
-                    continue
-        except IOError:
-            continue
-        if not reads:
-            counts.append([0,0,0]) #[# presence support reads, # absence support reads, # non-informative reads]
-        else:
-            counts.append(countReads(reads, union[ID], unionType(union[ID]), annotation))
-    return counts
-
+def countReads_portal(ID, union, samples, tmpDir, samFILE, hierarchy, label, l2, annotation):
+    # make a dict of all the TEids that match at the cluster level
+    TEID ={}
+    groupIndex=label.index(l2)
+    for h in hierarchy:
+        if hierarchy[h][groupIndex]==union[ID][4]:
+            TEID[h]=""
+    # count the reads
+    if not samFILE:
+        return [[0,0,0],"-","-"]
+    else:
+        reads=[x.split("\t") for x in samFILE.split("\n")]
+        del reads[-1]
+        return countReads(reads, union[ID], unionType(union[ID]), TEID, annotation)
 

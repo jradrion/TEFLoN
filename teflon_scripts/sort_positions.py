@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 25 16:48:43 2016
-
-@author: jeffreyadrion
-
-sort all families
-"""
-
 def sort(lines):
     sorted_lines,idTags=[],[]
     for i in xrange(len(lines)):

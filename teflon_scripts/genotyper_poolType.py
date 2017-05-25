@@ -1,4 +1,4 @@
-import os
+import os, sys
 def avgReads(line,readLen):
     F,R="",""
     if line[1].isdigit():
@@ -34,43 +34,38 @@ def pt_portal(genoDir, samples, posMap, stats, p2rC):
             for line in fIN:
                 tmp.append(line.split())
         cts.append(tmp)
-    if len(samples) == 1:
-        c_thresh=samples[0][2][3]+(4*samples[0][2][4])
-        print "coverage_threshold:",c_thresh
-        outFILE=os.path.join(genoDir,samples[0][1]+".genotypes.txt")
-        with open(outFILE, "w") as fOUT:
-            for j in range(len(cts[0])):
-                if avgReads(cts[0][j],readLen) <= c_thresh and fq(cts[0][j]) != 0.00:
-                    fOUT.write("\t".join([str(x) for x in cts[0][j]])+"\t%s\n" %(str(fq(cts[0][j]))))
-    else:
-        skip=[]
-        c_thresh=[]
-        for sample in samples:
-            c_thresh.append(sample[2][3] + (4*sample[2][4]))
-        print "coverage_threshold", c_thresh
-        outCall=[]
-        for i in range(len(cts[0])):
-            tmp=[]
-            for j in range(len(cts)):
-                if avgReads(cts[j][i],readLen) > c_thresh[j]:
-                    tmp.append(-1)
-                else:
-                    tmp.append(fq(cts[j][i]))
-            if -1 in tmp and all(x==tmp[0] for x in tmp):
-                #print tmp
-                skip.append(i)
-            elif 0.00 in tmp and all(x==tmp[0] for x in tmp):
-                #print tmp
-                skip.append(i)
-            outCall.append(tmp)
-        for i in range(len(cts)):
-            outFILE1=os.path.join(genoDir,samples[i][1]+".pseudoSpace.genotypes.txt")
-            with open(outFILE1, "w") as fOUT:
-                for j in range(len(cts[i])):
-                    if j not in skip:
-                        fOUT.write("\t".join([str(x) for x in cts[i][j]])+"\t%s\n" %(str(outCall[j][i])))
-            outFILE2=os.path.join(genoDir,samples[i][1]+".refSpace.genotypes.txt")
-            p2rC.pseudo2refConvert_portal(outFILE1,posMap,outFILE2)
+    skip=[]
+    c_thresh=[]
+    for sample in samples:
+        c_thresh.append(sample[2][3] + (4*sample[2][4]))
+    c_thresh=sum(c_thresh)/float(len(c_thresh))
+    print "coverage threshold (mean cov across all samples + 4*stdDev) :", c_thresh
+    print "all TEs with read counts > coverage threshold will be reported with allele frequency = -1"
+    outCall=[]
+    for i in range(len(cts[0])):
+        tmp=[]
+        for j in range(len(cts)):
+            if avgReads(cts[j][i],readLen) > c_thresh:
+                tmp.append(-1)
+            else:
+                tmp.append(fq(cts[j][i]))
+        if -1 in tmp and all(x==tmp[0] for x in tmp):
+            #print tmp
+            #skip.append(i)
+            pass
+        elif 0.00 in tmp and all(x==tmp[0] for x in tmp):
+            #print tmp
+            #skip.append(i)
+            pass
+        outCall.append(tmp)
+    for i in range(len(cts)):
+        outFILE1=os.path.join(genoDir,samples[i][1]+".pseudoSpace.genotypes.txt")
+        with open(outFILE1, "w") as fOUT:
+            for j in range(len(cts[i])):
+                if j not in skip:
+                    fOUT.write("\t".join([str(x) for x in cts[i][j]])+"\t%s\n" %(str(outCall[j][i])))
+        outFILE2=os.path.join(genoDir,samples[i][1]+".refSpace.genotypes.txt")
+        p2rC.pseudo2refConvert_portal(outFILE1,posMap,outFILE2)
 
 
 

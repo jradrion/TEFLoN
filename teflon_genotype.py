@@ -1,6 +1,6 @@
 import argparse, sys, os, gzip
 import cPickle as pickle
-
+import gc
 
 teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
@@ -9,30 +9,55 @@ from teflon_scripts import mean_stats as ms
 from teflon_scripts import genotyper_poolType as pt
 from teflon_scripts import pseudo2refConvert as p2rC
 
+def load_pickle(pFILE):
+    tmpFILE=pFILE.replace(os.path.basename(pFILE),os.path.basename(pFILE)+".tmp")
+    cmd="gunzip -c %s > %s" %(pFILE,tmpFILE)
+    print "cdm:",cmd
+    os.system(cmd)
+    print "loading pickle:",tmpFILE
+    print "NOTE: this step can be time and memory intesive for large reference genomes"
+    inFILE = open(tmpFILE, "rb")
+    gc.disable()
+    pDICT=pickle.load(inFILE)
+    gc.enable()
+    inFILE.close()
+    os.system("rm %s" %(tmpFILE))
+    print "pickle loaded!"
+    return pDICT
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-wd',dest='wd',help='full path to working directory')
+    parser.add_argument('-wd',dest='wd',help='full path to working directory', default=-1)
+    parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
     parser.add_argument('-s',dest='samples',help='tab delimited text file with full paths to indexed bamFILEs and sorted te positions')
-    parser.add_argument('-p',dest='pickle',help='pseudo2ref.pickle')
-    parser.add_argument('-t',dest='dataType',help='haploid, diploid, or pooled')
+    parser.add_argument('-dt',dest='dataType',help='haploid, diploid, or pooled')
     args = parser.parse_args()
 
-    wd=os.path.realpath(args.wd)
+    # identify current working directory
+    if args.wd == -1:
+        cwd=os.getcwd()
+    else:
+        cwd=os.path.realpath(args.wd)
+
+    # import options
+    prep_TF=args.DIR
+    prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
     dataType=args.dataType
     if dataType not in "haploid, diploid, or pooled":
         return "Error datatype must be either haploid, diploid, or pooled"
         sys.exit()
 
     #load pseudo2ref.pickle
-    print "loading",args.pickle,"..."
-    posMap=pickle.load(gzip.open(args.pickle, "rb"))
-    print args.pickle,"loaded"
+    pickleFILE=os.path.join(prep_TF,prefix+".pseudo2ref.pickle.gz")
+    #posMap=pickle.load(gzip.open(pickleFILE, "rb"))
+    posMap=load_pickle(pickleFILE)
 
     samples=[]
-    #each sample will be [path to sorted_position.txt, path to bamFILE, uniqueID, stats]
+    # read samples and stats
     with open(args.samples, 'r') as fIN:
         for line in fIN:
-            statsFile = line.split()[0].replace(".bam", ".stats.txt")
+            bamFILE=line.split()[0].replace(".bam",".subsmpl.bam")
+            statsFile = bamFILE.replace(".bam", ".stats.txt")
             with open(statsFile, 'r') as fIN:
                 for l in fIN:
                     if 'average length' in l:
@@ -41,28 +66,27 @@ def main():
                         insz=int(float(l.split()[-1]))
                     if 'insert size standard deviation' in l:
                         sd=int(float(l.split()[-1]))
-            covFILE = line.split()[0].replace(".bam", ".cov.txt")
+            covFILE = bamFILE.replace(".bam", ".cov.txt")
             with open(covFILE, "r") as fIN:
                 for l in fIN:
                     if l.startswith("Av"):
                         cov = float(l.split()[-1])
                     if l.startswith("St"):
                         cov_sd = float(l.split()[-1])
-            samples.append([line.split()[0], line.split()[1], [readLen, insz, sd, cov, cov_sd]])
+            samples.append([bamFILE, line.split()[1], [readLen, insz, sd, cov, cov_sd]])
 
-
-    #average the stats for each sample
+    # average the stats for each sample
     stats=ms.mean_stats_portal(samples)
 
-    #create the genotype directory
-    genoDir = os.path.join(wd,"finalPos")
+    # create the genotype directory
+    genoDir = os.path.join(cwd,"finalPos")
 
     print "genotyping"
     if dataType == "pooled":
         pt.pt_portal(genoDir,samples, posMap, stats, p2rC)
     else:
-        print """coming soon... Use "pooled" for temporary read counts"""
-    print "finished genotyping"
+        print """coming soon...but you can currently use "pooled" for presence/absence read counts"""
+    print "TEFLON GENOTYPE FINISHED!"
 
 if __name__ == "__main__":
 	main()

@@ -51,7 +51,7 @@ def rightMostPos(leftMostPos,opValue):
     '''add M=match/mismatch and D=deletions to left-most position'''
     return int(leftMostPos) + opValue[0]+opValue[2] - 1
 
-def isReference(ch, pos, side, focal_annotation, readLen, insz, sd):
+def isReference(ch, pos, side, focal_annotation, readLen, insz, sd, clustGroup, hierarchy):
     '''does insertion support a reference te'''
     if side == 'F':
         nearby_tes=[]
@@ -86,7 +86,6 @@ def side_clipped(cigar):
         return 'LR'
 
 def idOrientation(flag):
-    #orientation not accurate
     #this will effectively exclude orientaton until this is fixed
     return "."
     if bitFlag(int(flag))[4]==0 and bitFlag(int(flag))[5]==0:
@@ -96,7 +95,7 @@ def idOrientation(flag):
     else:
         return '+'
 
-def te_support(clustered_sam,focal_annotation,readLen,insz,sd):
+def te_support(clustered_sam,focal_annotation,readLen,insz,sd, clustGroup, hierarchy):
     '''return support for tes'''
     arr=clustered_sam.split()
     ch=arr[2]
@@ -118,7 +117,7 @@ def te_support(clustered_sam,focal_annotation,readLen,insz,sd):
         pos=rightMostPos(int(arr[3]),cigarParse(arr[5]))
     if support_side=='R':
         pos=int(arr[3])
-    ref_tes=isReference(ch, pos, support_side, focal_annotation, readLen, insz, sd)
+    ref_tes=isReference(ch, pos, support_side, focal_annotation, readLen, insz, sd, clustGroup, hierarchy)
     orientation=idOrientation(arr[1])
     #ref_tes='-'
     #print ch,pos,support_side,clip,ref_tes, orientation
@@ -233,6 +232,7 @@ def combineClusters(events, group, clustGroup):
                     combinedEvent[2]=sorted_notClipped[0][1]
                     combinedEvent[8]=sorted_notClipped[0][3]
                     combinedEvent[10]=sorted_notClipped[0][4]
+            print "ref",ref
             if len(set(ref))>1:
                 combinedEvent[6]=ref[0]+','+ref[1]
             else:
@@ -251,8 +251,6 @@ def matchOrient(old, new):
 
 def clusterClusters(old, readLen):
     old=sorted(old, key = lambda x: (x[0],x[1]))
-
-
     new_cluster=[]
     temp=[]
     for i in xrange(len(old)):
@@ -272,8 +270,6 @@ def clusterClusters(old, readLen):
         else:
             temp.append(old[i])
     new_cluster.append(temp)
-
-
     return new_cluster
 
 def orient(cluster):
@@ -290,7 +286,6 @@ def orient(cluster):
         return "-"
     else:
         return "."
-
 
 def clusterReads(calls, readLen, insz, sd, cov):
     clustered_calls,clustered_index,new_cluster,start=[],[],[],0
@@ -318,7 +313,6 @@ def clusterReads(calls, readLen, insz, sd, cov):
         else:
             start=end
 
-
     clusters=[]
     for i in xrange(len(clustered_calls)):
         clustered,clip_pos,est_pos=[],[],[]
@@ -333,7 +327,7 @@ def clusterReads(calls, readLen, insz, sd, cov):
                 for x in est_pos:
                     if x > mode(clip_pos):
                         ct+=1
-                print clustered_calls[i][1][1], ct, len(clip_pos)
+                #print clustered_calls[i][1][1], ct, len(clip_pos)
                 if mode(clip_pos) >= max(est_pos) or max(est_pos) > mode(clip_pos) >= max(est_pos)-(readLen/2):
                     p=mode(clip_pos)
                     clustered=[clustered_calls[i][0][0],p,clustered_calls[i][0][2],'+',len(clustered_calls[i]),clustered_calls[i][0][4],orient(clustered_calls[i])]
@@ -361,33 +355,34 @@ def clusterReads(calls, readLen, insz, sd, cov):
                 p=min(est_pos)
                 clustered=[clustered_calls[i][0][0],p,clustered_calls[i][0][2],'-',len(clustered_calls[i]),clustered_calls[i][0][4],orient(clustered_calls[i])]
         clusters.append(clustered)
-
     return clusters
 
 
-def position_estimate_portal(samFile_clust, suppFile, group, annotation, teIDs, readLen, insz, sd, cov, posDir, clustGroup):
+def position_estimate_portal(samFile_clust, suppFile, group, annotation, teIDs, readLen, insz, sd, cov, posDir, clustGroup, hierarchy):
+    # read annotation
     focal_annotation=[]
     for i in xrange(len(annotation)):
-        if annotation[i][3] in teIDs or 'polyN' in annotation[i][3]:
+        if annotation[i][3] in teIDs:
             focal_annotation.append(annotation[i])
+    # read primary support
     primary_support=[]
     with open(samFile_clust, 'r') as fIN:
         for line in fIN:
             arr=line.split()
             if arr[6] in teIDs and bitFlag(int(arr[1]))[8]==0 and bitFlag(int(arr[1]))[11]==0: #count only primary alignments whose mate is a te as support
-                primary_support.append(te_support(line,focal_annotation,readLen,insz,sd))
-    #Supp support is double counting some reads
+                primary_support.append(te_support(line,focal_annotation,readLen,insz,sd, clustGroup, hierarchy))
+    # read supplementary support
     supp_support=[]
     with open(suppFile, 'r') as fIN:
         for line in fIN:
             supp_support.append(line.split())
     for x in supp_support:
-        primary_support.append([x[0],int(x[1]),x[2],'+',isReference(x[0], int(x[1]), x[2], focal_annotation, readLen, insz, sd)])
+        primary_support.append([x[0],int(x[1]),x[2],'+',isReference(x[0], int(x[1]), x[2], focal_annotation, readLen, insz, sd, clustGroup, hierarchy)])
+    # sort by position
     sorted_reads=sorted(primary_support, key = lambda x: (x[0],x[1]))
-
-    ##Main
+    # combine and cluster
     clusteredCalls=combineClusters(clusterClusters(clusterReads(sorted_reads, readLen, insz, sd, cov), readLen), group, clustGroup)
-
+    # write position estimates
     outFile = os.path.join(posDir, "%s_positions.txt" %(group))
     with open(outFile, 'w') as fOUT:
         for line in clusteredCalls:

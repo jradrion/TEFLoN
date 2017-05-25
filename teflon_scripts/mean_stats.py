@@ -4,8 +4,9 @@ def average(lst):
 def mean_stats_portal(samples):
     means=[[],[],[],[],[]]
     for sample in samples:
-        statsFile = sample[0].replace(".bam", ".stats.txt")
-        covFILE = sample[0].replace(".bam", ".cov.txt")
+        bamFILE=sample[0]
+        statsFile = bamFILE.replace(".bam", ".stats.txt")
+        covFILE = bamFILE.replace(".bam", ".cov.txt")
         with open(statsFile, 'r') as fIN:
             for line in fIN:
                 if 'average length' in line:
