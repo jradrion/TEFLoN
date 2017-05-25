@@ -1,8 +1,10 @@
 *TEFLoN*
 =======
 
-TEFLoN uses paired-end illumina sequence data to discover the positions and identity of TEs present in one or multiple samples.
+TEFLoN uses paired-end illumina sequence data to discover the positions and identity of TEs present in one or more datasets.
 Input data can either be individually sequenced or sequenced as a pool, and multiple samples can be analyzed simultaneously to improve sensitivity.
+*TEFLoN.v0.3 is now ~50X faster!*
+
 
 ## Required packages
 
