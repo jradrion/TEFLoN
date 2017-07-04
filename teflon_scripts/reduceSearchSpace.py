@@ -3,10 +3,22 @@ import sys, os
 import subprocess as sp
 import shlex
 
+def progress_bar(percent, barLen = 50):
+    sys.stdout.write("\r")
+    progress = ""
+    for i in range(barLen):
+        if i < int(barLen * percent):
+            progress += "="
+        else:
+            progress += " "
+    sys.stdout.write("[ %s ] %.2f%%" % (progress, percent * 100))
+    sys.stdout.flush()
+
 def reduceSearchSpace_portal(union, samples, tmpDir, exePATH, qual, nProc):
     print "reducing search space..."
     # 1. write bed
     beds=[]
+    ct=1
     for ID in range(len(union)):
         bed=[]
         if union[ID][7] == "+":
@@ -25,6 +37,8 @@ def reduceSearchSpace_portal(union, samples, tmpDir, exePATH, qual, nProc):
                     fOUT.write("\t".join([str(x) for x in line]) + "\n")
                 except IOError:
                     continue
+        progress_bar(ct/float(len(union)))
+        ct+=1
 
     megaBed=os.path.join(tmpDir,"megaBed.bed")
     with open(megaBed, 'w') as fOUT:
@@ -37,7 +51,7 @@ def reduceSearchSpace_portal(union, samples, tmpDir, exePATH, qual, nProc):
     try:
         bamFILE = megaBed.replace(".bed", ".bam")
         cmd = "%s view -@ %s -q %s -L %s %s -b" %(exePATH, str(nProc), str(qual), megaBed, samples[0][0])
-        print "cmd:", cmd
+        print "\ncmd:", cmd
         p = sp.Popen(shlex.split(cmd), stdout=open(bamFILE, 'w'), stderr=sp.PIPE)
         perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
         #print perr

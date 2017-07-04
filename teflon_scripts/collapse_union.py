@@ -1,5 +1,16 @@
 import sys,random
 
+def progress_bar(percent, barLen = 50):
+    sys.stdout.write("\r")
+    progress = ""
+    for i in range(barLen):
+        if i < int(barLen * percent):
+            progress += "="
+        else:
+            progress += " "
+    sys.stdout.write("[ %s ] %.2f%%" % (progress, percent * 100))
+    sys.stdout.flush()
+
 def refTEset(refs):
     return ','.join(set(refs.split(',')))
 
@@ -35,17 +46,13 @@ def randomFamilySelect(families):
     return families[random.randint(0,len(families))-1]
 
 def collapseElements(lst, thresh):
-    #print "========================================================================="
-    #for x in lst:
-    #    print x
-    #return
-    chrom,Fpos,Rpos,fam,cLev,orient,ref,Fclip,Rclip=lst[0][0],"-","-","-","-","-","-","-","-"
+    chrom,Fpos,Rpos,fam,cLev,orient,ref,Fclip,Rclip,Fct,Rct=lst[0][0],"-","-","-","-","-","-","-","-","-","-"
     if readThresh(lst, thresh) == 0:
         pass
     else:
-        return ["-","-","-","-","-","-","-","-","-"]
+        return ["-","-","-","-","-","-","-","-","-","-","-"]
     if len(lst) == 1:
-        return [chrom,lst[0][1],lst[0][2],lst[0][3],lst[0][4],lst[0][5],lst[0][6],lst[0][7],lst[0][8]]
+        return [chrom,lst[0][1],lst[0][2],lst[0][3],lst[0][4],lst[0][5],lst[0][6],lst[0][7],lst[0][8],lst[0][9],lst[0][10]]
     else:
         Fpos_clp,Fpos_noClp = [],[]
         Rpos_clp,Rpos_noClp = [],[]
@@ -87,76 +94,66 @@ def collapseElements(lst, thresh):
         else:
             if Rpos_noClp:
                 Rpos=min(Rpos_noClp)
-        return [chrom,str(Fpos),str(Rpos),fam,cLev,orient,ref,Fclip,Rclip]
+        Fct_tmp,Rct_tmp=0,0
+        for i in range(len(lst)):
+            if lst[i][3] == fam:
+                if lst[i][9].isdigit():
+                    Fct_tmp+=int(lst[i][9])
+                if lst[i][10].isdigit():
+                    Rct_tmp+=int(lst[i][10])
+        if Fct_tmp>0:
+            Fct=Fct_tmp
+        if Rct_tmp>0:
+            Rct=Rct_tmp
+        return [chrom,str(Fpos),str(Rpos),fam,cLev,orient,ref,Fclip,Rclip,Fct,Rct]
 
 
-def addToCluster(elem, cluster, readLen, insz, sd):
+def addToGroup(elem, cluster, readLen, insz):
+    maxTSDLen=20
     for i in xrange(len(cluster)):
         if cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] != elem[6]:
             return 0
-        elif cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] == elem[6]:
+        if cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] == elem[6]:
             return 1
-    for i in xrange(len(cluster)):
-        if cluster[i][0] == elem[0] and cluster[i][1] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][1])+readLen:
+        if cluster[i][0] == elem[0] and cluster[i][1] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][1])+readLen and cluster[i][4]==elem[4]:
             return 1
-        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[2] != "-" and int(elem[2]) <= int(cluster[i][2])+readLen:
+        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[2] != "-" and int(elem[2]) <= int(cluster[i][2])+readLen and cluster[i][4]==elem[4]:
             return 1
-        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][2])+20: #20 should be longer than nearly all TSDs
+        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][2])+maxTSDLen and cluster[i][4]==elem[4]:
             return 1
     else:
         return 0
 
+def grouper(lst,readLen,insz,uniqueGroups):
+    group=[]
+    ct=1
+    for item in lst:
+        if not group:
+            group.append([item])
+        else:
+            groupsBack=min(uniqueGroups,len(group))
+            flag=0
+            for i in range(groupsBack):
+                index=(i+1)*-1
+                if addToGroup(item,group[index],readLen,insz)==1:
+                    group[index].append(item)
+                    flag=1
+                    break
+            if flag==0:
+                group.append([item])
+        progress_bar(ct/float(len(lst)))
+        ct+=1
+    return group
 
-def passReadThresh(tmp,thresh):
-    ct=0
-    for i in range(len(tmp)):
-        if tmp[i][9].isdigit() and tmp[i][10].isdigit():
-            ct+= (int(tmp[i][9])+int(tmp[i][10]))
-        elif tmp[i][9].isdigit() and not tmp[i][10].isdigit():
-            ct+=int(tmp[i][9])
-        elif tmp[i][10].isdigit() and not tmp[i][9].isdigit():
-            ct+=int(tmp[i][10])
-    if ct >= thresh:
-        return 1
-    else:
-        return 0
 
-def collapse(oldlst, readLen, insz, sd, thresh):
-    #filter out noisy calls. This method is crude and should be refined
-    lst=[]
-    for x in oldlst:
-        if passReadThresh([x],thresh) == 1:
-            lst.append(x)
+def collapse(lst, readLen, insz, thresh, uniqueGroups):
     #cluster calls
     genotypableElements=[]
     nonGenotypableElements=[]
     collapsedElements=[]
-    preCollapse=[]
-    while lst:
-        #print "Clustering iterations remaining:", len(lst)
-        newLst=[]
-        tmp=[]
-        for i in xrange(len(lst)):
-            #print lst[i]
-            if not tmp:
-                tmp.append(lst[i])
-            else:
-                if i < 500:
-                    #newLst.append(lst[i])
-                    if addToCluster(lst[i], tmp, readLen, insz, sd) == 1:
-                        tmp.append(lst[i])
-                    else:
-                        newLst.append(lst[i])
-                else:
-                    newLst.append(lst[i])
-        if passReadThresh(tmp,thresh) == 1:
-            preCollapse.append(tmp)
-            lst=newLst
-        else:
-            lst=newLst
-
-    for x in preCollapse:
-        collapsedElements.append(collapseElements(x, thresh))
+    preCollapse=dict(enumerate(grouper(lst,readLen,insz,uniqueGroups),0))
+    for i in range(len(preCollapse)):
+        collapsedElements.append(collapseElements(preCollapse[i], thresh))
     for x in collapsedElements:
         if isGenotypable(x) != 1:
             genotypableElements.append(x)
@@ -164,16 +161,21 @@ def collapse(oldlst, readLen, insz, sd, thresh):
             nonGenotypableElements.append(x)
     return [genotypableElements,nonGenotypableElements]
 
-def collapse_union_portal(inFILE, readLen, insz, sd, thresh):
+def collapse_union_portal(inFILE, readLen, insz, thresh):
+    groups=[]
     elements, collapsed = [],[]
     with open(inFILE, "r") as fIN:
         for line in fIN:
-            elements.append(line.split())
-    collapsed = collapse(elements, readLen, insz, sd, thresh)[0]
-    with open(inFILE.replace(".txt",".collapsed.txt"), "w") as fOUT:
+            ar=line.split()
+            elements.append(ar)
+            groups.append(ar[3])
+    uniqueGroups=len(set(groups))
+    collapsed = collapse(elements, readLen, insz, thresh, uniqueGroups)[0]
+    collapsedFILE=inFILE.replace(".txt",".collapsed.txt")
+    with open(collapsedFILE, "w") as fOUT:
         for line in collapsed:
             fOUT.write("\t".join([str(x) for x in line])+"\n")
 
-    return collapsed
+    return collapsedFILE
 
 

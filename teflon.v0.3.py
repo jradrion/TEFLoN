@@ -19,6 +19,17 @@ from teflon_scripts import cluster_positions as cp
 from teflon_scripts import position_estimate as pe
 from teflon_scripts import sort_positions as sortp
 
+def progress_bar(percent, barLen = 50):
+    sys.stdout.write("\r")
+    progress = ""
+    for i in range(barLen):
+        if i < int(barLen * percent):
+            progress += "="
+        else:
+            progress += " "
+    sys.stdout.write("[ %s ] %.2f%%" % (progress, percent * 100))
+    sys.stdout.flush()
+
 def mkdir_if_not_exist(*dirs):
     for dir in dirs:
         if not os.path.exists(dir):
@@ -85,15 +96,16 @@ def worker2(task_q, params):
             groups, nth_job = task_q.get()
             #unpack parameters
             annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir = params
+            ct=1
             for group in groups:
                 # 2. samtools view > complete.sam
                 try:
                     samFile_complete = os.path.join(samDir, "%s_complete.sam" %(group))
                     cmd = "%s view %s -L %s/%s_complete.bed" %(exeSAM, bam, bedDir, group)
-                    print "cmd:", cmd
+                    #print "cmd:", cmd
                     p = sp.Popen(shlex.split(cmd), stdout=open(samFile_complete, 'w'), stderr=sp.PIPE)
                     perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
-                    print perr
+                    #print perr
                     if p.returncode != 0:
                         print "error running samtools"
                         sys.exit(1)
@@ -102,8 +114,10 @@ def worker2(task_q, params):
                     sys.exit(1)
                 # 3. cluster positions
                 suppOutFile = os.path.join(suppDir, "%s_supplemental_alignments.txt" %(group))
-                print "clustering:", group
                 cp.cluster_positions_portal(samFile_complete, group, chromosomes, lengths, readLen, insz, sd, bedDir, qual, suppOutFile)
+                if nth_job==1:
+                    progress_bar(ct/float(len(groups)))
+                ct+=1
         finally:
             task_q.task_done()
 
@@ -113,6 +127,7 @@ def worker3(task_q, params):
             groups, nth_job = task_q.get()
             #unpack parameters
             annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir = params
+            ct=1
             for group in groups:
                 teIDs=[]
                 bed=os.path.join(bedDir,group+"_complete.bed")
@@ -131,11 +146,11 @@ def worker3(task_q, params):
                 try:
                     samFile_clust = os.path.join(samDir, "%s_clustered.sam" %(group))
                     cmd = "%s view %s -L %s/%s_clustered.bed" %(exeSAM, bam, bedDir, group)
-                    print "cmd:", cmd
+                    #print "cmd:", cmd
                     p = sp.Popen(shlex.split(cmd), stdout=open(samFile_clust, 'w'), stderr=sp.PIPE)
                     # communicate returns a tuple (stdout, stderr)
                     perr = p.communicate()[1]
-                    print perr
+                    #print perr
                     if p.returncode != 0:
                         print "error running samtools"
                         sys.exit(1)
@@ -143,8 +158,10 @@ def worker3(task_q, params):
                     print "Cannot run samtools"
                     sys.exit(1)
                 #5. position estimate
-                print 'estimating positions:',group
                 pe.position_estimate_portal(samFile_clust, suppOutFile, group, annotation, teIDs, readLen, insz, sd, cov, posDir, clustGroup, hierarchy)
+                if nth_job==1:
+                    progress_bar(ct/float(len(groups)))
+                ct+=1
         finally:
             task_q.task_done()
 
@@ -189,12 +206,14 @@ def main():
     # import hierarchy
     hierFILE=os.path.join(prep_TF,prefix+".hier")
     hierarchy,label={},[]
+    ct=0
     with open(hierFILE, 'r') as fIN:
         for line in fIN:
-            if line.startswith('id'):
+            if ct==0:
                 label=line.split()[1:]
-            if not line.startswith('id'):
+            else:
                 hierarchy[line.split()[0]] = line.split()[1:]
+            ct+=1
     bam,pre="",""
     with open(args.samples, "r") as fIN:
         for line in fIN:
@@ -221,7 +240,8 @@ def main():
 
     # import the chromosome lengths
     chromosomes,lengths=[],[]
-    with open(os.path.join(prep_TF,prefix+".genomeSize.txt"), 'r') as fIN:
+    genomeSizeFILE=os.path.join(prep_TF,prefix+".genomeSize.txt")
+    with open(genomeSizeFILE, 'r') as fIN:
         for line in fIN:
             arr=line.split()
             chromosomes.append(arr[0])
@@ -229,21 +249,26 @@ def main():
 
     # run samtools stats
     statsOutFile = bam.replace(".bam", ".stats.txt")
-    print "Calculating alignment statistics"
-    cmd = "%s stats %s" %(exeSAM, bam)
-    print "cmd:",cmd
-    p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
-    perr = p.communicate()[1]
-    if p.returncode != 0:
-        print "samtools stats issued error: %s" %(perr)
-        sys.exit(1)
+    if not os.path.exists(statsOutFile):
+        print "Calculating alignment statistics"
+        cmd = "%s stats -t %s %s" %(exeSAM, genomeSizeFILE, bam)
+        print "cmd:",cmd
+        p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
+        perr = p.communicate()[1]
+        if p.returncode != 0:
+            print "samtools stats issued error: %s" %(perr)
+            sys.exit(1)
+    else:
+        print "Stats file exists:",statsOutFile
 
     # calculate coverage
     covFILE = bam.replace(".bam", ".cov.txt")
-    #print covFILE
-    cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exeSAM, str(qual), bam, covFILE)
-    print "cmd:",cmd
-    os.system(cmd)
+    if not os.path.exists(covFILE):
+        #print covFILE
+        cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exeSAM, str(qual), bam, covFILE)
+        print "cmd:",cmd
+        os.system(cmd)
+    print "Coverage file exists:",covFILE
 
     # read samtools stats file
     with open(statsOutFile, 'r') as fIN:
@@ -257,7 +282,7 @@ def main():
     if sd > 75:
         if args.stdev == -1:
             print "!!! Warning: insert size standard deviation reported as",sd,"!!!"
-            print "Please ensure this is correct or override in options"
+            print "Please ensure this is an appropriate or override in options"
             sys.exit()
         else:
             sd=args.stdev
@@ -294,6 +319,7 @@ def main():
     print "Groups to search:", groups
 
     # run multiprocess 1
+    print "writing TE bed files..."
     task_q = mp.JoinableQueue()
     params=[annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
     create_proc1(nProc, task_q, params)
@@ -304,9 +330,10 @@ def main():
         print "KeyboardInterrupt"
         sys.exit(0)
     else:
-        print "finished writing beds"
+        print "writing TE bed files completed!"
 
     # reduce search-space 1
+    print "reducing search space..."
     try:
         bedFILE = os.path.join(bedDir,"mega_complete.bed")
         bamFILE = os.path.join(samDir,"mega_complete.bam")
@@ -329,6 +356,7 @@ def main():
     os.system(cmd)
 
     # run multiprocess 2
+    print "clustering TE positions..."
     task_q = mp.JoinableQueue()
     params=[annotation, bamFILE, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
     create_proc2(nProc, task_q, params)
@@ -339,7 +367,7 @@ def main():
         print "KeyboardInterrupt"
         sys.exit(0)
     else:
-        print "finished clustering positions"
+        print "\nclustering TE positions completed!"
 
     # reduce search-space 2
     print "final reduction of search space..."
@@ -366,6 +394,7 @@ def main():
 
 
     # run multiprocess 3
+    print "estimating TE breakpoints..."
     bamFILE = os.path.join(samDir,"mega_clustered.bam")
     task_q = mp.JoinableQueue()
     params=[annotation, bamFILE, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
@@ -377,7 +406,7 @@ def main():
         print "KeyboardInterrupt"
         sys.exit(0)
     else:
-        print "finished position estimates"
+        print "\nestimating TE breakpoints completed!"
 
     # concatonate position estimates
     catFile = os.path.join(outDir,pre + ".all_positions.txt")
@@ -386,10 +415,10 @@ def main():
         for file in glob.glob(os.path.join(posDir, "*.txt")):
             files += file + " "
         cmd = "cat %s" %(files)
-        print "cmd:", cmd  #p = sp.Popen(shlex.split(cmd), stdout=open(catFile, 'w'), stderr=sp.PIPE)
+        #print "cmd:", cmd  #p = sp.Popen(shlex.split(cmd), stdout=open(catFile, 'w'), stderr=sp.PIPE)
         p = sp.Popen(shlex.split(cmd), stdout=open(catFile, 'w'), stderr=sp.PIPE)
         perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
-        print perr
+        #print perr
         if p.returncode != 0:
             print "error concatenating positions"
             sys.exit(1)
@@ -398,7 +427,7 @@ def main():
         sys.exit(1)
 
     # sort position estimates
-    print "Sorting positions"
+    print "Sorting positions..."
     sortp.sort_portal(catFile)
 
     # remove temporary directories

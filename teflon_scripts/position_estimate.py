@@ -232,7 +232,7 @@ def combineClusters(events, group, clustGroup):
                     combinedEvent[2]=sorted_notClipped[0][1]
                     combinedEvent[8]=sorted_notClipped[0][3]
                     combinedEvent[10]=sorted_notClipped[0][4]
-            print "ref",ref
+            #print "ref",ref
             if len(set(ref))>1:
                 combinedEvent[6]=ref[0]+','+ref[1]
             else:

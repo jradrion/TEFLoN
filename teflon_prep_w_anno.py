@@ -18,6 +18,7 @@ def main():
     parser.add_argument('-wd',dest='wd',help='full path to working directory',default=0)
     parser.add_argument('-a',dest='anno',help='reference TE annotation')
     parser.add_argument('-t',dest='hier',help='reference TE hierarchy')
+    parser.add_argument('-f',dest='fasta',help='reference TE fasta',default=-1)
     parser.add_argument('-g',dest='genome',help='reference genome')
     parser.add_argument('-p',dest='pre',help='prefix for all newly created files')
     args = parser.parse_args()
@@ -56,11 +57,19 @@ def main():
 
     #Cat pseudoRef RM.annotatedTE.fa and
     mapRef=os.path.join(prep_MP_DIR,prefix+".mappingRef.fa")
-    if not os.path.exists(mapRef):
-        print "Concatonating reference and TE sequences"
-        os.system("cat %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),mapRef))
+    if args.fasta != -1:
+        canonicalPATH=args.fasta
+        if not os.path.exists(mapRef):
+            print "Concatonating reference and TE sequences"
+            os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),canonicalPATH,mapRef))
+        else:
+            print "Mapping Reference exists:", mapRef
     else:
-        print "Mapping Reference exists:", mapRef
+        if not os.path.exists(mapRef):
+            print "Concatonating reference and TE sequences"
+            os.system("cat %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),mapRef))
+        else:
+            print "Mapping Reference exists:", mapRef
     print "Reference prep complete."
     print "Map reads to mapping reference:",mapRef
 

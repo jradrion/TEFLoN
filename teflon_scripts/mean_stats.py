@@ -4,6 +4,7 @@ def average(lst):
 def mean_stats_portal(samples):
     means=[[],[],[],[],[]]
     for sample in samples:
+        #print sample
         bamFILE=sample[0]
         statsFile = bamFILE.replace(".bam", ".stats.txt")
         covFILE = bamFILE.replace(".bam", ".cov.txt")

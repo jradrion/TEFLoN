@@ -11,6 +11,17 @@ from teflon_scripts import genotyper_writeBed as wb
 from teflon_scripts import genotyper_countReads as cr
 from teflon_scripts import reduceSearchSpace as rss
 
+def drawProgressBar(percent, barLen = 50):
+    sys.stdout.write("\r")
+    progress = ""
+    for i in range(barLen):
+        if i < int(barLen * percent):
+            progress += "="
+        else:
+            progress += " "
+    sys.stdout.write("[ %s ] %.2f%%" % (progress, percent * 100))
+    sys.stdout.flush()
+
 def check_dependency(exePATH):
     try:
         cmd = "%s" %(exePATH)
@@ -54,22 +65,38 @@ def worker(task_q, result_q, params):
             #unpack parameters
             genoDir, tmpDir, exePATH, union, samples, qual, hierarchy, label, l2, annotation = params
             tmp=[]
+            ct=1
             for ID in siteID:
+                flag=0
                 #print union[ID]
                 # 1. write sam files for all samples
-                samFILE = wb.wb_portal(ID, union, samples, tmpDir, exePATH, qual)
+                samFILE = wb.wb_portal(ID, union, samples, tmpDir, exePATH, qual, "firstPass")
                 # 2. count support and non support reads for each event
                 counts = cr.countReads_portal(ID, union, samples, tmpDir, samFILE, hierarchy, label, l2, annotation) # counts = [[#p(sample1),#a(sample1),#NA(sample1)],[#p(sampleN),#a(sampleN),#NA(sampleN)]]
+                # 3. were new clipped positions identified?
                 if counts[1]!="-":
                     union[ID][1]=counts[1]
                     union[ID][7]="+"
+                    flag=1
                 if counts[2]!="-":
                     union[ID][2]=counts[2]
                     union[ID][8]="+"
-                union[ID].extend(ct for ct in counts[0])
-                print "Finished:",union[ID]
-                tmp.append([ID,union[ID]])
-            #print "result put",tmp
+                    flag=1
+                if flag==1: #position estimates were refined, recount
+                    # 1. write sam files for all samples
+                    samFILE = wb.wb_portal(ID, union, samples, tmpDir, exePATH, qual, "refine")
+                    # 2. count support and non support reads for each event
+                    counts = cr.countReads_portal(ID, union, samples, tmpDir, samFILE, hierarchy, label, l2, annotation) # counts = [[#p(sample1),#a(sample1),#NA(sample1)],[#p(sampleN),#a(sampleN),#NA(sampleN)]]
+                    union[ID].extend(ct for ct in counts[0])
+                    tmp.append([ID,union[ID]])
+                    if nth_job==1:
+                        drawProgressBar(ct/float(len(siteID)))
+                else:
+                    union[ID].extend(ct for ct in counts[0])
+                    tmp.append([ID,union[ID]])
+                    if nth_job==1:
+                        drawProgressBar(ct/float(len(siteID)))
+                ct+=1
             result_q.put(tmp)
         finally:
             task_q.task_done()
@@ -109,12 +136,14 @@ def main():
     l2=args.cLevel
     hierFILE=os.path.join(prep_TF,prefix+".hier")
     hierarchy,label={},[]
+    ct=0
     with open(hierFILE, 'r') as fIN:
         for line in fIN:
-            if line.startswith('id'):
+            if ct==0:
                 label=line.split()[1:]
-            if not line.startswith('id'):
+            else:
                 hierarchy[line.split()[0]] = line.split()[1:]
+            ct+=1
 
     # read annotation
     annotation={}
@@ -125,7 +154,8 @@ def main():
 
     # read chromosome lengths
     chromosomes,lengths=[],[]
-    with open(os.path.join(prep_TF,prefix+".genomeSize.txt"), 'r') as fIN:
+    genomeSizeFILE=os.path.join(prep_TF,prefix+".genomeSize.txt")
+    with open(genomeSizeFILE, 'r') as fIN:
         for line in fIN:
             arr=line.split()
             chromosomes.append(arr[0])
@@ -202,7 +232,7 @@ def main():
     # remove directory with beds/sams
     shutil.rmtree(tmpDir)
 
-    print "TEFLON COUNT FINISHED!"
+    print "\nTEFLON COUNT FINISHED!"
 
 if __name__ == "__main__":
 	main()
