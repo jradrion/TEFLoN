@@ -3,6 +3,17 @@ also creates a file of pseudo genome sizes and maps between the pseudo and true 
 
 import os, sys, gzip
 import cPickle as pickle
+
+def revComp(sequence):
+    '''returns the reverse complement of sequence'''
+    comp=""
+    for b in sequence:
+        if b in "ACGT":
+            comp+="TGCA"["ACGT".index(b)]
+        else:
+            comp+=b
+    return comp[::-1]
+
 def fastaformat(seq):
     '''returns a string where every 70 bases is separated by a new line'''
     seq=seq.upper()
@@ -37,7 +48,8 @@ def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
             start=int(arr[1])
             stop=int(arr[2])
             ID=arr[3]
-            bed.append([chrom,start,stop,ID])
+            strand=arr[5]
+            bed.append([chrom,start,stop,ID,strand])
     print 'Reading reference:',fasta
     chroms=[]
     genome={}
@@ -71,6 +83,9 @@ def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
                 extractedSeqs[x[3]]=""
                 for i in xrange(x[1]-1,x[2]):
                     extractedSeqs[x[3]]+=genome[ch][i]
+            if x[4]=="-":
+                tmp=extractedSeqs[x[3]]
+                extractedSeqs[x[3]]=revComp(tmp)
     for ch in genome:
         for x in bed:
             if ch == x[0]:

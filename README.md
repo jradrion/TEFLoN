@@ -140,14 +140,14 @@ usage: python usr/local/teflon_genotype.py <required> [optional]
 The output "genotype" file is currently a tab-separated file with the following columns:
 ```
 C1: chromosome
-C2: 5' breakpoint (if available)
-C3: 3' breakpoint (if available)
+C2: 5' breakpoint estimate ("-" if estimate not available)
+C3: 3' breakpoint estimate ("-" if estimate not available)
 C4: search level id
 C5: cluster level id
-C6: strand (currently under construction, current output is ".")
-C7: annotated reference TE id (if there was a match)
-C8: 5' breakpoint is supported by soft-clipped reads (if TRUE + else -)
-C9: 3' breakpoint is supported by soft-clipped reads (if TRUE + else -)
+C6: strand ("." if strand could not be detected)
+C7: annotated reference TE identifier ("-" if novel insertion)
+C8: 5' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
+C9: 3' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
 C10: read count for "presence reads"
 C11: read count for "absence reads"
 C12: read count for "other reads"

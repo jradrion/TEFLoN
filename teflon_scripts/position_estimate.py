@@ -86,8 +86,6 @@ def side_clipped(cigar):
         return 'LR'
 
 def idOrientation(flag):
-    #this will effectively exclude orientaton until this is fixed
-    return "."
     if bitFlag(int(flag))[4]==0 and bitFlag(int(flag))[5]==0:
         return '-'
     elif bitFlag(int(flag))[4]==1 and bitFlag(int(flag))[5]==1:
@@ -119,11 +117,7 @@ def te_support(clustered_sam,focal_annotation,readLen,insz,sd, clustGroup, hiera
         pos=int(arr[3])
     ref_tes=isReference(ch, pos, support_side, focal_annotation, readLen, insz, sd, clustGroup, hierarchy)
     orientation=idOrientation(arr[1])
-    #ref_tes='-'
-    #print ch,pos,support_side,clip,ref_tes, orientation
-    #sys.exit()
     return [ch,pos,support_side,clip,ref_tes,orientation]
-    #return [ch,pos,support_side,clip,'-']
 
 def cluster(data, maxgap):
     '''Arrange data into groups where successive elements differ by no more than maxgap'''
@@ -181,9 +175,9 @@ def combineClusters(events, group, clustGroup):
             ref=[]
             for j in xrange(len(events[i])):
                 if events[i][j][6]=="+":
-                    combinedEvents[5]="+"
+                    combinedEvent[5]="+"
                 if events[i][j][6]=="-":
-                    combinedEvents[5]="-"
+                    combinedEvent[5]="-"
                 if events[i][j][2] == 'F':
                     F.append(events[i][j])
                 if events[i][j][2] == 'R':
@@ -195,8 +189,6 @@ def combineClusters(events, group, clustGroup):
                         clipped.append(F[j])
                     else:
                         notClipped.append(F[j])
-                #print clipped
-                #print notClipped
                 if clipped:
                     sorted_clipped=sorted(clipped, key = lambda x: x[1])
                     ref.append(sorted_clipped[-1][5])
@@ -232,7 +224,6 @@ def combineClusters(events, group, clustGroup):
                     combinedEvent[2]=sorted_notClipped[0][1]
                     combinedEvent[8]=sorted_notClipped[0][3]
                     combinedEvent[10]=sorted_notClipped[0][4]
-            #print "ref",ref
             if len(set(ref))>1:
                 combinedEvent[6]=ref[0]+','+ref[1]
             else:
@@ -290,7 +281,6 @@ def orient(cluster):
 def clusterReads(calls, readLen, insz, sd, cov):
     clustered_calls,clustered_index,new_cluster,start=[],[],[],0
     while len(clustered_index) < len(calls):
-        #print 'index len', len(clustered_index),'out of:',len(calls)
         count=[]
         if start + (5*cov) <= len(calls):
             end=start + (5*cov)
@@ -327,7 +317,6 @@ def clusterReads(calls, readLen, insz, sd, cov):
                 for x in est_pos:
                     if x > mode(clip_pos):
                         ct+=1
-                #print clustered_calls[i][1][1], ct, len(clip_pos)
                 if mode(clip_pos) >= max(est_pos) or max(est_pos) > mode(clip_pos) >= max(est_pos)-(readLen/2):
                     p=mode(clip_pos)
                     clustered=[clustered_calls[i][0][0],p,clustered_calls[i][0][2],'+',len(clustered_calls[i]),clustered_calls[i][0][4],orient(clustered_calls[i])]
