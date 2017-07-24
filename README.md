@@ -55,7 +55,7 @@ Step 2) Index the prepped reference genome.
 ```
 bwa index </usr/local/prefix.prep_MP/prefix.mappingRef.fa>
 ```
-Step 3) For each sample, map all reads using BWA mem.
+Step 3) For each sample, map all reads using BWA mem with option -Y.
 ```
 bwa mem -t <nThreads> -Y </usr/local/prefix.prep_MP/prefix.mappingRef.fa> <read1.fq> <read2.fq> > alignment.sam
 ```
