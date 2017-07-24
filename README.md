@@ -1,8 +1,8 @@
 *TEFLoN*
 =======
 
-TEFLoN uses paired-end illumina sequence data to discover and genotype TEs present in one or more datasets.
-Input data can either be individually sequenced or sequenced as a pool, and multiple samples can be analyzed simultaneously to improve sensitivity.
+TEFLoN uses paired-end illumina sequence data to discover and genotype transposable elements present in your samples.
+Samples can either be individually sequenced or sequenced as a pool, and multiple samples can be analyzed simultaneously to improve sensitivity.
 *TEFLoN.v0.3 is now ~50X faster!*
 
 
@@ -14,7 +14,7 @@ Input data can either be individually sequenced or sequenced as a pool, and mult
 * [RepeatMasker](www.repeatmasker.org) (Only required if you do not have a reference TE annotation)
 
 ## Testing 
-Sample files are provided to ensure TEFLoN and its dependencies are running correctly.
+Test files are provided to ensure TEFLoN and its dependencies are running correctly.
 
 ## Usage
 ### Data prep
@@ -23,7 +23,7 @@ Step 1a) If you have a reference TE annotation in BED format, use teflon_prep_w_
 NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (ideally this label would indicate the family or order for each TE instance, but you can use any label you like.)
 TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created TE hierarchy file.
 The first line of this file must include identifying headers (the header for column of individual TE instances must be "id", the other header labels can be anything and each column must be separated by a tab).
-A good example of what this TE hierarchy file should look like is provided in the sample files.
+A good example of what this TE hierarchy file should look like is provided in the test files.
 
 ```
 usage: python /usr/local/teflon_prep_w_anno.py <required> [optional] 
