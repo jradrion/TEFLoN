@@ -20,7 +20,7 @@ Sample files are provided to ensure TEFLoN and its dependencies are running corr
 ### Data prep
 Step 1a) If you have a reference TE annotation in BED format, use teflon_prep_w_anno.py to prepare your reference genome for mapping.
 
-NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (idealy this label would indicate the family or order for each TE instance, but you can use any label you like.)
+NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (ideally this label would indicate the family or order for each TE instance, but you can use any label you like.)
 TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created TE hierarchy file.
 The first line of this file must include identifying headers (the header for column of individual TE instances must be "id", the other header labels can be anything and each column must be separated by a tab).
 A good example of what this TE hierarchy file should look like is provided in the sample files.
@@ -41,9 +41,9 @@ NOTE: In this case you will *not* need to manually create a hierarchy file, as T
 ```
 usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
     -wd [full path to working directory]
-    -e <full path to repeatMasker executable> 
+    -e <full path to RepeatMasker executable> 
     -g <full path to reference genome in fasta format>
-    -r <full path to repBase_library.ref for your organism> #NOTE: a custom TE library may be used, but fasta sequence headers must be formated as ">FAMILYID\tORDERID\n" 
+    -r <full path to repBase_library.ref for your organism> #NOTE: a custom TE library may be used, but fasta sequence headers must be formatted as ">FAMILYID\tORDERID\n" 
     -p <prefix for all newly created files>
     -l [minimum length for RepeatMasker predicted TE to be reported in final annotation] 
     -s [RepeatMasker predicted TEs from the same family separated by distances less than the splitDist will be combined into a single annotated TE] #Note: it is recommended to use average sequencing read length 
@@ -80,7 +80,7 @@ You are now ready to proceed to using TEFLoN.
 
 ### Using TEFLoN
 There are four modules in TEFLoN: teflon.v0.3, teflon_collapse, teflon_count, and teflon_genotype.
-You must run teflon.v0.3 and teflon_count seperately for each sample. These modules run independently for each sample (i.e. you can run all samples simultaneosly with enough threads).
+You must run teflon.v0.3 and teflon_count separately for each sample. These modules run independently for each sample (i.e. you can run all samples simultaneously with enough threads).
 Teflon_collapse and teflon_genotype only need to run once per analysis.
 
 Step 1) For each sample, run teflon.v0.3
@@ -95,7 +95,7 @@ usage: python usr/local/teflon.v0.3.py <required> [optional]
     -l1 <level of the hierarchy file to guide initial TE search> #it is recommended to use the lowest level in the hierarchy file (i.e. "hier_level_1" for data without user-curated hierarchy)
     -l2 <level of the hierarchy to cluster similar TEs> #same level of the hierarchy used in -l or higher (clustering at higher levels will reduce the number of TE instances found and improve accuracy in determining the TE type)
     -q <map quality threshold> #mapped reads with map qualities lower than this number will be discarded
-    -exclude [newline separated file containing thet name of any te families to exclude from analysis] #these names must match names from column -l1 from the hierarchy file
+    -exclude [newline separated file containing the name of any TE families to exclude from analysis] #these names must match names from column -l1 from the hierarchy file
     -sd [insert size standard deviation] #used to manually override the insert size sd identified by samtools stat (check this number in the generated stats.txt file to ensure it seems more or less correct based on knowledge of sequencing library!)
     -cov [coverage override] #used to manually override the estimated coverage if you get the error: "Warning: coverage could not be estimated"
     -t [number of threads]
