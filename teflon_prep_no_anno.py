@@ -1,8 +1,6 @@
 import argparse, sys, os
 import subprocess as sp
 import shlex
-import glob
-import shutil
 
 teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
@@ -39,7 +37,8 @@ def main():
     parser.add_argument('-g',dest='genome',help='reference genome')
     parser.add_argument('-r',dest='lib',help='repBase library')
     parser.add_argument('-p',dest='pre',help='prefix for all newly created files')
-    parser.add_argument('-l',dest='readLen',help='average read length',type=int)
+    parser.add_argument('-l',dest='minLen',help='minimum length for RM predicted TE to be reported in annotation',type=int,default=20)
+    parser.add_argument('-s',dest='splitDist',help='RM predicted TEs of the same family separated by distances less than the splitDist will be combined into a single annotated TE',type=int, default=100)
     parser.add_argument('-d',dest='div',help='masks only those repeats < x percent diverged from consensus seq',type=int, default=20)
     parser.add_argument('-t',dest='cpu',help='number of threads',type=int,default=1)
     args = parser.parse_args()
@@ -74,7 +73,7 @@ def main():
 
     #Create annotation.bed
     RM_bedFILE=os.path.join(prep_RM_DIR,prefix+".bed")
-    rep2bed.rep2bed_portal(masked_faFILE.replace(".masked",".out"),RM_bedFILE,args.readLen)
+    rep2bed.rep2bed_portal(masked_faFILE.replace(".masked",".out"),RM_bedFILE,args.splitDist,args.minLen)
 
     #Create hierarchy.txt
     RM_hierFILE=os.path.join(prep_TF_DIR,prefix+".hier")

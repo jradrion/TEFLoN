@@ -43,10 +43,11 @@ usage: python /usr/local/teflon_prep_no_anno.py <required> [optional]
     -wd [full path to working directory]
     -e <full path to repeatMasker executable> 
     -g <full path to reference genome in fasta format>
-    -r <full path to repBase_library.ref for your organism>
+    -r <full path to repBase_library.ref for your organism> #NOTE: a custom TE library may be used, but fasta sequence headers must be formated as ">FAMILYID\tORDERID\n" 
     -p <prefix for all newly created files>
-    -l <approximate length of reads that you will later map> 
-    -d [identify only those repeats < x percent diverged from the consensus seq]
+    -l [minimum length for RepeatMasker predicted TE to be reported in final annotation] 
+    -s [RepeatMasker predicted TEs from the same family separated by distances less than the splitDist will be combined into a single annotated TE] #Note: it is recommended to use average sequencing read length 
+    -d [only those repeats < x percent diverged from the consensus seq will be included in final annotation]
     -t [number of threads]
 ```
 

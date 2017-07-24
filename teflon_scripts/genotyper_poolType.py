@@ -37,9 +37,9 @@ def pt_portal(genoDir, samples, posMap, stats, p2rC):
     skip=[]
     c_thresh=[]
     for sample in samples:
-        c_thresh.append(sample[2][3] + (4*sample[2][4]))
+        c_thresh.append((2*sample[2][3]) + (3*sample[2][4]))
     c_thresh=sum(c_thresh)/float(len(c_thresh))
-    print "coverage threshold (mean cov across all samples + 4*stdDev) :", c_thresh
+    print "coverage threshold (2 * mean cov across all samples + 3*stdDev) :", c_thresh
     print "all TEs with read counts > coverage threshold will be reported with allele frequency = -1"
     outCall=[]
     for i in range(len(cts[0])):

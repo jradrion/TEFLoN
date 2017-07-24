@@ -1,6 +1,3 @@
-import sys
-
-
 def cluster(fam,prev,readLen):
     if fam[0] == prev[0]:
         if int(fam[1]) <= int(prev[2])+(readLen/2) and fam[3] == prev[3]:
@@ -38,7 +35,7 @@ def combine(fam,readLen):
 
 
 ##Converts RepeatMasker out file to a bed file to be used with TEFLoN
-def rep2bed_portal(inFILE,outFILE,readLen):
+def rep2bed_portal(inFILE,outFILE,readLen,minLen):
     print "Writing annotation file:",outFILE
     repMasked=[]
     with open(inFILE, "r") as fIN:
@@ -64,6 +61,7 @@ def rep2bed_portal(inFILE,outFILE,readLen):
     with open(outFILE, "w") as fOUT:
         ct=1
         for line in combined_fam:
-            fOUT.write("%s\t%s\t%s\t%s\t.\t%s\n" %(line[0],line[1],line[2],"TEid"+str(ct)+"."+line[3],line[4]))
-            ct+=1
+            if int(line[2])-int(line[1]) >= minLen:
+                fOUT.write("%s\t%s\t%s\t%s\t.\t%s\n" %(line[0],line[1],line[2],"TEid"+str(ct)+"."+line[3],line[4]))
+                ct+=1
 

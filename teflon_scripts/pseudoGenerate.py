@@ -79,12 +79,14 @@ def removeBedPos(bedFile, fasta, prep_MP_DIR,prep_TF_DIR, pre):
     for ch in genome:
         #print "old len:",len(genome[ch])
         for x in bed:
-            if ch == x[0]:
+            if ch == x[0] and x[4]!="-":
                 extractedSeqs[x[3]]=""
                 for i in xrange(x[1]-1,x[2]):
                     extractedSeqs[x[3]]+=genome[ch][i]
-            if x[4]=="-":
-                tmp=extractedSeqs[x[3]]
+            elif ch== x[0] and x[4]=="-":
+                tmp=""
+                for i in xrange(x[1]-1,x[2]):
+                    tmp+=genome[ch][i]
                 extractedSeqs[x[3]]=revComp(tmp)
     for ch in genome:
         for x in bed:
