@@ -1,7 +1,7 @@
 *TEFLoN*
 =======
 
-TEFLoN uses paired-end illumina sequence data to discover the positions and identity of TEs present in one or more datasets.
+TEFLoN uses paired-end illumina sequence data to discover and genotype TEs present in one or more datasets.
 Input data can either be individually sequenced or sequenced as a pool, and multiple samples can be analyzed simultaneously to improve sensitivity.
 *TEFLoN.v0.3 is now ~50X faster!*
 
@@ -152,7 +152,7 @@ C9: 3' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
 C10: read count for "presence reads"
 C11: read count for "absence reads"
 C12: read count for "other reads"
-C13: allele frequency/genotype (frequency if pooled data, genotype for haploid/diploid currently under construction)
+C13: allele frequency/genotype (allele frequency if pooled data, genotype for haploid/diploid currently under construction)
 
 ```
 
