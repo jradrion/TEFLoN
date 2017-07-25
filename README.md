@@ -3,7 +3,6 @@
 
 TEFLoN uses paired-end illumina sequence data to discover and genotype transposable elements present in your samples.
 Samples can either be individually sequenced or sequenced as a pool, and multiple samples can be analyzed simultaneously to improve sensitivity.
-*TEFLoN.v0.3 is now ~50X faster!*
 
 
 ## Required packages
