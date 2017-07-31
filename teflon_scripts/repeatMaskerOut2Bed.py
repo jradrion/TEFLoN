@@ -1,6 +1,6 @@
 def cluster(fam,prev,readLen):
     if fam[0] == prev[0]:
-        if int(fam[1]) <= int(prev[2])+(readLen/2) and fam[3] == prev[3]:
+        if int(fam[1]) <= int(prev[2])+(readLen) and fam[3] == prev[3]:
             if int(fam[4]) >= int(prev[4]):
                 carry_name=fam[-1]
             else:

@@ -279,13 +279,15 @@ def main():
                 insz=int(float(line.split()[-1]))
             if 'insert size standard deviation' in line:
                 sd=int(float(line.split()[-1]))
-    if sd > 75:
-        if args.stdev == -1:
+
+    if args.stdev == -1:
+        print "Insert size standard deviation estimated as %s. Use the override option if you suspect this is incorrect!" %(sd)
+        if sd > 100:
             print "!!! Warning: insert size standard deviation reported as",sd,"!!!"
-            print "Please ensure this is an appropriate or override in options"
+            print "Please ensure this is correct and use the override option!"
             sys.exit()
-        else:
-            sd=args.stdev
+    else:
+        sd=args.stdev
 
     # read coverage file
     cov=args.cov

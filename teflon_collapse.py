@@ -56,7 +56,8 @@ def main():
     parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
     parser.add_argument('-s',dest='samples',help='tab delimited text file with full paths to indexed bamFILEs and sorted te positions')
     parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable')
-    parser.add_argument('-n',dest='thresh',help='Final TE position esitimate must be supported by >= n in at least one sample', type=int, default=1)
+    parser.add_argument('-n1',dest='thresh1',help='TEs must be supported by >= n reads in at least one sample', type=int, default=1)
+    parser.add_argument('-n2',dest='thresh2',help='TEs must be supported by >= n reads summed across all samples', type=int, default=1)
     parser.add_argument('-cov',dest='cov',help='subsample to coverage override', type=float, default=-1)
     parser.add_argument('-q',dest='qual',help='map quality threshold', type=int, default=20)
     parser.add_argument('-t',dest='nProc',help='number of processors', type=int, default=1)
@@ -70,7 +71,8 @@ def main():
 
     # import options
     exeSAM=args.exeSAM
-    thresh=args.thresh
+    thresh1=args.thresh1
+    thresh2=args.thresh2
     qual=args.qual
     nProc=args.nProc
     covOverride=args.cov
@@ -113,7 +115,7 @@ def main():
 
     # run multiprocess 1
     task_q = mp.JoinableQueue()
-    params=[cwd,thresh]
+    params=[cwd,thresh1]
     create_proc1(nProc, task_q, params)
     assign_task(samples, task_q, nProc)
     try:
@@ -148,7 +150,7 @@ def main():
 
     # collapse union of all samples
     print "Collapse union of all samples..."
-    collapsedFILE=cu.collapse_union_portal(catFILE_sorted, readLen, insz, thresh)
+    collapsedFILE=cu.collapse_union_portal(catFILE_sorted, readLen, insz, thresh2)
     tmpFILE=collapsedFILE.replace(".txt",".tmp")
     with open(collapsedFILE,"r") as fIN, open(tmpFILE, "w") as fOUT:
         for line in fIN:

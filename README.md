@@ -106,7 +106,8 @@ usage: python usr/local/teflon_collapse.py <required> [optional]
     -wd [full path to working directory]
     -s <full path to samples.txt>
     -es <full path to samtools executable>
-    -n <TEs must be supported by >= n reads in at least one sample>
+    -n1 <TEs must be supported by >= n reads in at least one sample>
+    -n2 <TEs must be supported by >= n reads summed across all samples>
     -q <map quality threshold> #mapped reads with map qualities lower than this number will be discarded
     -cov [coverage override] #used to manually override the estimated coverage if you get the error: "Warning: coverage could not be estimated"
     -t [number of threads]
