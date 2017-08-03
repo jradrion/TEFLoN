@@ -134,6 +134,7 @@ usage: python usr/local/teflon_genotype.py <required> [optional]
     -wd [full path to working directory]
     -d <full path to usr/local/prefix.prep_TF/>
     -s <full path to samples.txt> #user created
+    -f [sites genotyped as -9 if adjusted read counts greater than this threshold or 0 presence/absence reads detected] #default= avereage covereage + 4*STDEV
     -dt <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
 ```
 
@@ -152,7 +153,7 @@ C9: 3' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
 C10: read count for "presence reads"
 C11: read count for "absence reads"
 C12: read count for "other reads"
-C13: allele frequency/genotype (allele frequency if pooled data, genotype for haploid/diploid currently under construction)
+C13: genotype (allele frequency for pooled data, present/absent/heterozygous for haploid/diploid) #Note: haploid/diploid caller under construction, use "pooled" for presence/absence read counts
 
 ```
 
