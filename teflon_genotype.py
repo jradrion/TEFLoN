@@ -30,7 +30,7 @@ def main():
     parser.add_argument('-wd',dest='wd',help='full path to working directory', default=-1)
     parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
     parser.add_argument('-s',dest='samples',help='tab delimited text file with full paths to indexed bamFILEs and sorted te positions')
-    parser.add_argument('-f',dest='filt',help='sites genotyped as -9 if adjusted read counts greater than this threshold (default=mean_coverage + 4*STDEV)', type=int, default=-1)
+    parser.add_argument('-f',dest='filt',help='sites genotyped as -9 if adjusted read counts greater than this threshold (default=mean_coverage + 2*STDEV)', type=int, default=-1)
     parser.add_argument('-dt',dest='dataType',help='haploid, diploid, or pooled')
     args = parser.parse_args()
 
@@ -82,7 +82,7 @@ def main():
     if hardFilt == -1:
         c_thresh=[]
         for sample in samples:
-            c_thresh.append(int(sample[2][3]+ (4*sample[2][4])))
+            c_thresh.append(int(sample[2][3]+ (2*sample[2][4])))
     else:
         c_thresh=[]
         for sample in samples:

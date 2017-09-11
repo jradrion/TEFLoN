@@ -29,6 +29,7 @@ usage: python /usr/local/teflon_prep_w_anno.py <required> [optional]
     -wd [full path to working directory]
     -a <full path to reference TE annotation in BED format> 
     -t <full path to user generated TE hierarchy>
+    -f [canonical TE sequences in fasta format]
     -g <full path to reference genome in fasta format>
     -p <prefix for all newly created files>
 ```

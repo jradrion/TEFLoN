@@ -18,7 +18,7 @@ def main():
     parser.add_argument('-wd',dest='wd',help='full path to working directory',default=0)
     parser.add_argument('-a',dest='anno',help='reference TE annotation')
     parser.add_argument('-t',dest='hier',help='reference TE hierarchy')
-    parser.add_argument('-f',dest='fasta',help='reference TE fasta',default=-1)
+    parser.add_argument('-f',dest='fasta',help='canonical TE sequence in fasta format',default=-1)
     parser.add_argument('-g',dest='genome',help='reference genome')
     parser.add_argument('-p',dest='pre',help='prefix for all newly created files')
     args = parser.parse_args()
