@@ -67,7 +67,8 @@ def side_clipped(cigar):
         return ''
 
 def isPrimary(read):
-    if bitFlag(int(read[1]))[8]==0 and bitFlag(int(read[1]))[11]==0:
+    bFlags=bitFlag(int(read[1]))
+    if bFlags[8]==0 and bFlags[9]==0 and bFlags[10]==0 and bFlags[11]==0:
         return 1
     else:
         return 0
@@ -128,12 +129,13 @@ def ct_type1FR(reads, F, R, union, TEID):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
+            bFlags=bitFlag(int(read[1]))
             try:
                 TEID[read[6]]
-                if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                if bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot:
+                elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 else:
@@ -142,16 +144,16 @@ def ct_type1FR(reads, F, R, union, TEID):
                 if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
                     #print read[0], "\t", "a"
                     cts[1]+=1
-                elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                elif bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                elif bFlags[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                elif bFlags[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                elif bFlags[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 else:
@@ -173,12 +175,13 @@ def ct_type1F(reads, F, R, union, TEID):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
+            bFlags=bitFlag(int(read[1]))
             try:
                 TEID[read[6]]
-                if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                if bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot:
+                elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 else:
@@ -187,16 +190,16 @@ def ct_type1F(reads, F, R, union, TEID):
                 if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
                     #print read[0], "\t", "a"
                     cts[1]+=1
-                elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                elif bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                elif bFlags[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                elif bFlags[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                elif bFlags[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 else:
@@ -219,12 +222,13 @@ def ct_type1R(reads, F, R, union, TEID):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
+            bFlags=bitflag(int(read[1]))
             try:
                 TEID[read[6]]
-                if bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                if bflags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and int(read[3]) > R-overShoot:
+                elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 else:
@@ -233,16 +237,16 @@ def ct_type1R(reads, F, R, union, TEID):
                 if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
                     #print read[0], "\t", "a"
                     cts[1]+=1
-                elif bitFlag(int(read[1]))[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                elif bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                elif bFlags[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
+                elif bFlags[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
-                elif bitFlag(int(read[1]))[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
+                elif bFlags[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 else:

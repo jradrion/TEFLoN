@@ -358,7 +358,8 @@ def position_estimate_portal(samFile_clust, suppFile, group, annotation, teIDs, 
     with open(samFile_clust, 'r') as fIN:
         for line in fIN:
             arr=line.split()
-            if arr[6] in teIDs and bitFlag(int(arr[1]))[8]==0 and bitFlag(int(arr[1]))[11]==0: #count only primary alignments whose mate is a te as support
+            bFlags=bitFlag(int(arr[1]))
+            if arr[6] in teIDs and bFlags[8]==0 and bFlags[9]==0 and bFlags[10]==0 and bFlags[11]==0: #count only primary alignments whose mate is a te as support
                 primary_support.append(te_support(line,focal_annotation,readLen,insz,sd, clustGroup, hierarchy))
     # read supplementary support
     supp_support=[]
@@ -366,7 +367,7 @@ def position_estimate_portal(samFile_clust, suppFile, group, annotation, teIDs, 
         for line in fIN:
             supp_support.append(line.split())
     for x in supp_support:
-        primary_support.append([x[0],int(x[1]),x[2],'+',isReference(x[0], int(x[1]), x[2], focal_annotation, readLen, insz, sd, clustGroup, hierarchy)])
+        primary_support.append([x[0],int(x[1]),x[2],"+",isReference(x[0], int(x[1]), x[2], focal_annotation, readLen, insz, sd, clustGroup, hierarchy),"."])
     # sort by position
     sorted_reads=sorted(primary_support, key = lambda x: (x[0],x[1]))
     # combine and cluster

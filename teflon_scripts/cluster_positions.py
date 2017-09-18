@@ -105,8 +105,10 @@ def cluster_positions_portal(sam, group, chromosomes, lengths, readLen, insz, sd
     with open(sam, 'r') as fIN, open(suppOutFile, 'w') as fOUT:
         for line in fIN:
             arr=line.split()
-            if bitFlag(arr[1])[11] != 1 and parseSuppAlign(line, chromosomes, qual)[0] in chromosomes:
-                fOUT.write('\t'.join([str(x) for x in parseSuppAlign(line, chromosomes, qual)])+'\n')
+            bFlags=bitFlag(int(arr[1]))
+            if bFlags[8] == 1 or bFlags[11] == 1:
+                if bFlags[9] == 0 and bFlags[10] == 0 and parseSuppAlign(line, chromosomes, qual)[0] in chromosomes:
+                    fOUT.write('\t'.join([str(x) for x in parseSuppAlign(line, chromosomes, qual)])+'\n')
             if arr[6] in chromosomes:
                 leftpos.append([arr[6],int(arr[7])])
         lpos=sorted(leftpos, key = lambda x: (x[0],x[1]))

@@ -67,13 +67,13 @@ samtools index <alignment.sorted.bam>
 ```
 Note: Ideally, you should have also QC processed your raw reads and removed duplicates from the alignment.
 
-Step 5) Create a .txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam files and a unique prefix/nickname for that sample separated by a tab.
+Step 5) Manually create a .txt file (e.g. samples.txt), where each new line contains both the full path to the indexed and sorted alignment.bam files and a unique prefix/nickname for that sample separated by a tab.
 Note that this step is necessary even if you are only analyzing a single sample.
 
 ```
 Example File:
-/usr/local/sample1.sorted.bam  s1
-/usr/local/sample2.sorted.bam  s2
+/usr/local/sample1.sorted.bam  sample1_name
+/usr/local/sample2.sorted.bam  sample2_name
 ```
 
 You are now ready to proceed to using TEFLoN.
