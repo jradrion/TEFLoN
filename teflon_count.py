@@ -166,9 +166,12 @@ def main():
     with open(args.samples, 'r') as fIN:
         for line in fIN:
             bamFILE = line.split()[0].replace(".bam",".subsmpl.bam")
-            #if bamFILE == args.bam:
+            #print "#",line.split()[1],args.ID
             if line.split()[1] == args.ID:
+                #print "hah"
                 statsFILE = bamFILE.replace(".bam", ".stats.txt")
+                #print statsFILE
+                #sys.exit()
                 pre=line.split()[1]
                 with open(statsFILE, 'r') as fIN:
                     for l in fIN:

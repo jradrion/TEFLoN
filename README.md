@@ -105,6 +105,7 @@ Step 2) Run teflon_collapse.
 ```
 usage: python usr/local/teflon_collapse.py <required> [optional]
     -wd [full path to working directory]
+    -d <full path to usr/local/prefix.prep_TF/>
     -s <full path to samples.txt>
     -es <full path to samtools executable>
     -n1 <TEs must be supported by >= n reads in at least one sample>
