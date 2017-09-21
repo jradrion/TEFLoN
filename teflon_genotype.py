@@ -15,7 +15,7 @@ def load_pickle(pFILE):
     print "cdm:",cmd
     os.system(cmd)
     print "loading pickle:",tmpFILE
-    print "NOTE: this step can be time and memory intesive for large reference genomes"
+    print "NOTE: this step can be time and memory intensive for large reference genomes"
     inFILE = open(tmpFILE, "rb")
     gc.disable()
     pDICT=pickle.load(inFILE)
