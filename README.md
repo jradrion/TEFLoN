@@ -19,7 +19,7 @@ Test files are provided to ensure TEFLoN and its dependencies are running correc
 ### Data prep
 Step 1a) If you have a reference TE annotation in BED format, use teflon_prep_w_anno.py to prepare your reference genome for mapping.
 
-IMPORTANT: A unique identifier must be used for each entry in the annotation file (field 4).
+IMPORTANT: A unique identifier must be used for each entry in the annotation file (field 4). An example annotation file is provided in TEFLoN/test_files.
 
 NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (ideally this label would indicate the family or order for each TE instance, but you can use any label you like.)
 TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created TE hierarchy file.
