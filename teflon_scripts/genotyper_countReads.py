@@ -222,10 +222,10 @@ def ct_type1R(reads, F, R, union, TEID):
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
-            bFlags=bitflag(int(read[1]))
+            bFlags=bitFlag(int(read[1]))
             try:
                 TEID[read[6]]
-                if bflags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
+                if bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
                     #print read[0], "\t", "p"
                     cts[0]+=1
                 elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
