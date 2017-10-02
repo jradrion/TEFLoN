@@ -121,8 +121,9 @@ def main():
         cwd=os.path.realpath(args.wd)
 
     # import options
-    prep_TF=args.DIR
-    prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+    prep_TF=os.path.realpath(args.DIR)
+    #prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+    prefix=os.path.basename(args.DIR).replace(".prep_TF","")
     exeSAM=args.exeSAM
     exeBWA=args.exeBWA
     qual=args.qual
@@ -163,7 +164,7 @@ def main():
 
     # read samples and stats
     samples=[]
-    with open(args.samples, 'r') as fIN:
+    with open(os.path.realpath(args.samples), 'r') as fIN:
         for line in fIN:
             bamFILE = line.split()[0].replace(".bam",".subsmpl.bam")
             #print "#",line.split()[1],args.ID

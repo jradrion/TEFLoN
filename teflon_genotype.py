@@ -42,8 +42,8 @@ def main():
 
     # import options
     hardFilt=args.filt
-    prep_TF=args.DIR
-    prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+    prep_TF=os.path.realpath(args.DIR)
+    prefix=os.path.basename(args.DIR).replace(".prep_TF","")
     dataType=args.dataType
     if dataType not in "haploid, diploid, or pooled":
         return "Error datatype must be either haploid, diploid, or pooled"
@@ -51,7 +51,7 @@ def main():
 
     # read samples and stats
     samples=[]
-    with open(args.samples, 'r') as fIN:
+    with open(os.path.realpath(args.samples), 'r') as fIN:
         for line in fIN:
             bamFILE=line.split()[0].replace(".bam",".subsmpl.bam")
             statsFile = bamFILE.replace(".bam", ".stats.txt")

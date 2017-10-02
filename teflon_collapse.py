@@ -70,7 +70,7 @@ def main():
         cwd=os.path.realpath(args.wd)
 
     # import options
-    exeSAM=args.exeSAM
+    exeSAM=os.path.realpath(args.exeSAM)
     thresh1=args.thresh1
     thresh2=args.thresh2
     qual=args.qual
@@ -80,7 +80,7 @@ def main():
     # read the samples and stats
     samples=[]
     # each sample will be formatted [path to bamFILE, uniqueID, [stats]]
-    with open(args.samples, 'r') as fIN:
+    with open(os.path.realpath(args.samples), 'r') as fIN:
         for line in fIN:
             statsOutFile = line.split()[0].replace(".bam", ".stats.txt")
             with open(statsOutFile, 'r') as fIN:
@@ -103,7 +103,7 @@ def main():
             samples.append([line.split()[0], line.split()[1], [readLen, insz, sd, total_n,cov,cov_sd]])
 
     # generate subsampled alignments for use in teflon_count
-    sa.subsample_alignments_portal(samples, exeSAM, nProc, qual, covOverride,args.DIR)
+    sa.subsample_alignments_portal(samples, exeSAM, nProc, qual, covOverride,os.path.realpath(args.DIR))
 
     # average the stats for each sample
     stats=ms.mean_stats_portal(samples)

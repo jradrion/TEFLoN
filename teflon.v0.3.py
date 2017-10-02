@@ -190,8 +190,9 @@ def main():
         cwd=os.path.realpath(args.wd)
 
     # import options
-    prep_TF=args.DIR
-    prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+    prep_TF=os.path.realpath(args.DIR)
+    #prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+    prefix=os.path.basename(args.DIR).replace(".prep_TF","")
     exeSAM=args.exeSAM
     exeBWA=args.exeBWA
     level=args.level
@@ -215,7 +216,7 @@ def main():
                 hierarchy[line.split()[0]] = line.split()[1:]
             ct+=1
     bam,pre="",""
-    with open(args.samples, "r") as fIN:
+    with open(os.path.realpath(args.samples), "r") as fIN:
         for line in fIN:
             if line.split()[1] == args.ID:
                 pre = line.split()[1]
