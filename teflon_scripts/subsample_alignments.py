@@ -32,7 +32,8 @@ def worker(task_q, params):
             #unpack parameters
             exePATH, qual, min_seqs, DIR = params
             prep_TF=DIR
-            prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+            #prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
+            prefix=os.path.basename(DIR).replace(".prep_TF","")
             for sample in samples:
                 bamFILE = sample[0].replace(".bam",".subsmpl.bam")
                 if not os.path.exists(bamFILE):
