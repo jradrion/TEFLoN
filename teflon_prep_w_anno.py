@@ -47,10 +47,7 @@ def main():
 
     #Generate reference in pseudospace
     pseudoRefFILE=os.path.join(prep_MP_DIR,prefix+".pseudo.fa")
-    if not os.path.exists(pseudoRefFILE):
-        pickle = pg.pseudo_generate_portal(args.anno,args.genome,prep_MP_DIR,prep_TF_DIR,prefix)
-    else:
-        print "Reference in pseudospace already exists:", pseudoRefFILE
+    pickle = pg.pseudo_generate_portal(args.anno,args.genome,prep_MP_DIR,prep_TF_DIR,prefix)
 
     #Convert annotation.bed to pseudospace
     r2pC.ref2pseudoConvert_portal(args.anno,pickle,os.path.join(prep_TF_DIR,prefix+".te.pseudo.bed"))
@@ -59,17 +56,11 @@ def main():
     mapRef=os.path.join(prep_MP_DIR,prefix+".mappingRef.fa")
     if args.fasta != -1:
         canonicalPATH=args.fasta
-        if not os.path.exists(mapRef):
-            print "Concatonating reference and TE sequences"
-            os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),canonicalPATH,mapRef))
-        else:
-            print "Mapping Reference exists:", mapRef
+        print "Concatonating reference and TE sequences"
+        os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),canonicalPATH,mapRef))
     else:
-        if not os.path.exists(mapRef):
-            print "Concatonating reference and TE sequences"
-            os.system("cat %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),mapRef))
-        else:
-            print "Mapping Reference exists:", mapRef
+        print "Concatonating reference and TE sequences"
+        os.system("cat %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),mapRef))
     print "Reference prep complete."
     print "Map reads to mapping reference:",mapRef
 

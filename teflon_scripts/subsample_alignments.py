@@ -36,28 +36,25 @@ def worker(task_q, params):
             prefix=os.path.basename(DIR).replace(".prep_TF","")
             for sample in samples:
                 bamFILE = sample[0].replace(".bam",".subsmpl.bam")
-                if not os.path.exists(bamFILE):
-                    print "Creating",bamFILE
-                    try:
-                        fract=round(1/float(int(sample[2][4])/float(min_seqs)),3)
-                        if fract < 1.0:
-                            cmd = "%s view -b -s %s %s" %(exePATH, fract, sample[0])
-                            print "cmd:", cmd
-                            p = sp.Popen(shlex.split(cmd), stdout=open(bamFILE, 'w'), stderr=sp.PIPE)
-                            perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
-                            #print perr
-                            if p.returncode != 0:
-                                print "Error running samtools: p.returncode =",p.returncode
-                                continue
-                        else:
-                            cmd = "cp %s %s" %(sample[0], bamFILE)
-                            print "cmd:", cmd
-                            os.system(cmd)
-                    except OSError:
-                        print "Cannot run samtools"
-                        sys.exit(1)
-                else:
-                    print bamFILE,"exists"
+                print "Creating",bamFILE
+                try:
+                    fract=round(1/float(int(sample[2][4])/float(min_seqs)),3)
+                    if fract < 1.0:
+                        cmd = "%s view -b -s %s %s" %(exePATH, fract, sample[0])
+                        print "cmd:", cmd
+                        p = sp.Popen(shlex.split(cmd), stdout=open(bamFILE, 'w'), stderr=sp.PIPE)
+                        perr = p.communicate()[1] # communicate returns a tuple (stdout, stderr)
+                        #print perr
+                        if p.returncode != 0:
+                            print "Error running samtools: p.returncode =",p.returncode
+                            continue
+                    else:
+                        cmd = "cp %s %s" %(sample[0], bamFILE)
+                        print "cmd:", cmd
+                        os.system(cmd)
+                except OSError:
+                    print "Cannot run samtools"
+                    sys.exit(1)
 
                 # 2. index new bam file
                 cmd = "%s index %s" %(exePATH, bamFILE)
@@ -67,24 +64,21 @@ def worker(task_q, params):
                 # 3. run samtools stats on subsampled alignments
                 statsOutFile = bamFILE.replace(".bam", ".stats.txt")
                 genomeSizeFILE=os.path.join(prep_TF,prefix+".genomeSize.txt")
-                if not os.path.exists(statsOutFile):
-                    print "Calculating alignment statistics for", bamFILE
-                    cmd = "%s stats -t %s %s" %(exePATH, genomeSizeFILE, bamFILE)
-                    print "cmd:",cmd
-                    p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
-                    perr = p.communicate()[1]
-                    if p.returncode != 0:
-                        print "samtools stats issued error: %s" %(perr)
-                        sys.exit(1)
+                print "Calculating alignment statistics for", bamFILE
+                cmd = "%s stats -t %s %s" %(exePATH, genomeSizeFILE, bamFILE)
+                print "cmd:",cmd
+                p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
+                perr = p.communicate()[1]
+                if p.returncode != 0:
+                    print "samtools stats issued error: %s" %(perr)
+                    sys.exit(1)
 
-                    #calculate coverage
-                    covFILE = bamFILE.replace(".bam", ".cov.txt")
-                    #print covFILE
-                    cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exePATH, str(qual), bamFILE, covFILE)
-                    print "cmd:",cmd
-                    os.system(cmd)
-                else:
-                    print statsOutFile, "exists"
+                #calculate coverage
+                covFILE = bamFILE.replace(".bam", ".cov.txt")
+                #print covFILE
+                cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exePATH, str(qual), bamFILE, covFILE)
+                print "cmd:",cmd
+                os.system(cmd)
         finally:
             task_q.task_done()
 

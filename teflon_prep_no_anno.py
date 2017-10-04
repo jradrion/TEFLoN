@@ -68,8 +68,7 @@ def main():
     rh.reheadRepBaseLib_portal(args.lib,lib_outFILE) #Try without rehead
     #Mask the reference
     masked_faFILE=os.path.join(prep_RM_DIR,os.path.basename(args.genome)+".masked")
-    if not os.path.exists(masked_faFILE):
-        repeatMask(cwd,prefix,args.repMask,args.genome,args.cpu,lib_outFILE,args.div)
+    repeatMask(cwd,prefix,args.repMask,args.genome,args.cpu,lib_outFILE,args.div)
 
     #Create annotation.bed
     RM_bedFILE=os.path.join(prep_RM_DIR,prefix+".bed")
@@ -80,21 +79,15 @@ def main():
     rep2hier.rep2hier_portal(lib_outFILE,RM_bedFILE,RM_hierFILE)
     #Generate reference in pseudospace
     pseudoRefFILE=os.path.join(prep_MP_DIR,prefix+".pseudo.fa")
-    if not os.path.exists(pseudoRefFILE):
-        pickle = pg.pseudo_generate_portal(RM_bedFILE,masked_faFILE.replace(".masked",""),prep_MP_DIR,prep_TF_DIR,prefix)
-    else:
-        print "Reference in pseudospace already exists:", pseudoRefFILE
+    pickle = pg.pseudo_generate_portal(RM_bedFILE,masked_faFILE.replace(".masked",""),prep_MP_DIR,prep_TF_DIR,prefix)
 
     #Convert annotation.bed to pseudospace
     r2pC.ref2pseudoConvert_portal(RM_bedFILE,pickle,os.path.join(prep_TF_DIR,prefix+".te.pseudo.bed"))
 
     #Cat pseudoRef RM.annotatedTE.fa and
     mapRef=os.path.join(prep_MP_DIR,prefix+".mappingRef.fa")
-    if not os.path.exists(mapRef):
-        print "Concatonating reference and TE sequences"
-        os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),lib_outFILE,mapRef))
-    else:
-        print "Mapping Reference exists:", mapRef
+    print "Concatonating reference and TE sequences"
+    os.system("cat %s %s %s > %s" %(pseudoRefFILE,os.path.join(prep_MP_DIR,prefix+".annotatedTE.fa"),lib_outFILE,mapRef))
     print "Reference prep complete."
     print "Map reads to mapping reference:",mapRef
 

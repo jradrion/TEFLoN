@@ -250,26 +250,20 @@ def main():
 
     # run samtools stats
     statsOutFile = bam.replace(".bam", ".stats.txt")
-    if not os.path.exists(statsOutFile):
-        print "Calculating alignment statistics"
-        cmd = "%s stats -t %s %s" %(exeSAM, genomeSizeFILE, bam)
-        print "cmd:",cmd
-        p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
-        perr = p.communicate()[1]
-        if p.returncode != 0:
-            print "samtools stats issued error: %s" %(perr)
-            sys.exit(1)
-    else:
-        print "Stats file exists:",statsOutFile
+    print "Calculating alignment statistics"
+    cmd = "%s stats -t %s %s" %(exeSAM, genomeSizeFILE, bam)
+    print "cmd:",cmd
+    p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
+    perr = p.communicate()[1]
+    if p.returncode != 0:
+        print "samtools stats issued error: %s" %(perr)
+        sys.exit(1)
 
     # calculate coverage
     covFILE = bam.replace(".bam", ".cov.txt")
-    if not os.path.exists(covFILE):
-        #print covFILE
-        cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exeSAM, str(qual), bam, covFILE)
-        print "cmd:",cmd
-        os.system(cmd)
-    print "Coverage file exists:",covFILE
+    cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exeSAM, str(qual), bam, covFILE)
+    print "cmd:",cmd
+    os.system(cmd)
 
     # read samtools stats file
     with open(statsOutFile, 'r') as fIN:
