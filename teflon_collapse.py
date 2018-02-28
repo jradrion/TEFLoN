@@ -7,7 +7,7 @@ teflonBase = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import sort_positions as sortp
-from teflon_scripts import collapse_union_DEBUG as cu
+from teflon_scripts import collapse_union as cu
 from teflon_scripts import mean_stats as ms
 from teflon_scripts import subsample_alignments as sa
 

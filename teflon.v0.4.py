@@ -15,7 +15,7 @@ teflonBase = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import write_bed as wb
-from teflon_scripts import cluster_positions_DEBUG as cp
+from teflon_scripts import cluster_positions as cp
 from teflon_scripts import position_estimate as pe
 from teflon_scripts import sort_positions as sortp
 

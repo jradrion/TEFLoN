@@ -8,7 +8,7 @@ teflonBase = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import genotyper_writeBed as wb
-from teflon_scripts import genotyper_countReads_DEBUG as cr
+from teflon_scripts import genotyper_countReads as cr
 from teflon_scripts import reduceSearchSpace as rss
 
 def drawProgressBar(percent, barLen = 50):

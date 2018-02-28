@@ -7,7 +7,7 @@ sys.path.insert(1, teflonBase)
 
 from teflon_scripts import mean_stats as ms
 from teflon_scripts import genotyper_poolType as pt
-from teflon_scripts import pseudo2refConvert_DEBUG as p2rC
+from teflon_scripts import pseudo2refConvert as p2rC
 
 def load_pickle(pFILE):
     tmpFILE=pFILE.replace(os.path.basename(pFILE),os.path.basename(pFILE)+".tmp")
