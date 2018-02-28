@@ -143,7 +143,6 @@ usage: python /usr/local/teflon_count.py <required> [optional]
 ```
 
 Step 4) *Only once*, run teflonGenotype.py
-NOTE: Haploid and diploid genotyper is under construction! Use -dt pooled for the moment to get read counts supporting the presence or absence of each element.
 ```
 usage: python usr/local/teflon_genotype.py <required> [optional]
     -wd [full path to working directory]
@@ -151,7 +150,7 @@ usage: python usr/local/teflon_genotype.py <required> [optional]
     -s <full path to samples.txt>
     -lt [sites genotyped as -9 if adjusted read counts lower than than this threshold, default=1]
     -ht [sites genotyped as -9 if adjusted read counts higher than this threshold, default=mean_coverage + 2*STDEV]
-    -dt <data type> #must be either haploid, diploid, or pooled #Currently, all types must use pooled for read counts
+    -dt <data type> #must be either haploid, diploid, or pooled #NOTE: haplid/diploid genotyper under construction, all types must use pooled
 ```
 
 ### Output files
@@ -170,7 +169,7 @@ C9: 3' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
 C10: read count for "presence reads"
 C11: read count for "absence reads"
 C12: read count for "ambiguous reads"
-C13: genotype for each TE (allele frequency for pooled data, present/absent for halploid, present/absent/heterozygous for diploid) #Note: haploid/diploid caller is under construction, use "pooled" for presence/absence read counts
+C13: genotype for every TE (allele frequency for pooled data, present/absent for halploid, present/absent/heterozygous for diploid) #Note: haploid/diploid caller is under construction, use "pooled" for presence/absence read counts
 C14: numbered identifier for each TE in the population
 
 ```
