@@ -24,8 +24,10 @@ def pseudo2refConvert_portal(bedFILE,pseudo2refMap,outFILE):
     pseudoMap=pseudo2refMap
     print "Converting coordinates from pseudospace to reference-based coordinates..."
     with open(bedFILE, 'r') as fIN, open(outFILE, 'w') as fOUT:
+        line_ct=1
         for line in fIN:
-            ls=line.split()
+            orgls=line.split()
+            ls=orgls[:-3]+orgls[-1:]
             chrom=ls[0]
             for ch in pseudoMap:
                 if ch == chrom:
@@ -48,5 +50,9 @@ def pseudo2refConvert_portal(bedFILE,pseudo2refMap,outFILE):
                             ls[2]=pseudoMap[chrom][int(ls[2])]
                         else:
                             ls[2]=gapFlanks(chrom,ls[2],pseudoMap,"R")
-                    fOUT.write("\t".join([str(x) for x in ls])+"\n")
+                    if line_ct<10:
+                        line_ct="0"+str(line_ct)
+                    fOUT.write("\t".join([str(x) for x in ls])+"\tte"+str(line_ct)+"\n")
+                    line_ct=int(line_ct)
+                    line_ct+=1
 

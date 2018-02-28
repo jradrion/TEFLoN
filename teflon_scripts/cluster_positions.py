@@ -93,10 +93,8 @@ def parseSuppAlign(line, chromosomes, qual):
 	pos = 0
 	if support_side=='F':
 		pos=rightMostPos(arr[1],cigarParse(arr[3]))
-        #print line
 	if support_side=='R':
 		pos=int(arr[1])
-        #print line
 	return[arr[0],pos,support_side,line.split()[0]]
 
 def cluster_positions_portal(sam, group, chromosomes, lengths, readLen, insz, sd, bedDir, qual, suppOutFile):

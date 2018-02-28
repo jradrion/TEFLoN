@@ -4,11 +4,11 @@ import subprocess as sp
 import shlex
 import shutil
 
-teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
+teflonBase = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import genotyper_writeBed as wb
-from teflon_scripts import genotyper_countReads as cr
+from teflon_scripts import genotyper_countReads_DEBUG as cr
 from teflon_scripts import reduceSearchSpace as rss
 
 def drawProgressBar(percent, barLen = 50):
@@ -42,12 +42,10 @@ def assign_task(siteID, task_q, nProcs):
         i+=1
     nP1=nProcs-(len(siteID)%nProcs)
     for j in range(nP1):
-        #print "put", len(siteID[c:c+i]), nth_job
         task_q.put((siteID[c:c+i], nth_job))
         nth_job += 1
         c=c+i
     for j in range(nProcs-nP1):
-        #print "put", len(siteID[c:c+i+1]), nth_job
         task_q.put((siteID[c:c+i+1], nth_job))
         nth_job += 1
         c=c+i+1
@@ -73,6 +71,7 @@ def worker(task_q, result_q, params):
                 samFILE = wb.wb_portal(ID, union, samples, tmpDir, exePATH, qual, "firstPass")
                 # 2. count support and non support reads for each event
                 counts = cr.countReads_portal(ID, union, samples, tmpDir, samFILE, hierarchy, label, l2, annotation) # counts = [[#p(sample1),#a(sample1),#NA(sample1)],[#p(sampleN),#a(sampleN),#NA(sampleN)]]
+                #print "counts:",counts,":counts"
                 # 3. were new clipped positions identified?
                 if counts[1]!="-":
                     union[ID][1]=counts[1]
@@ -93,6 +92,8 @@ def worker(task_q, result_q, params):
                         drawProgressBar(ct/float(len(siteID)))
                 else:
                     union[ID].extend(ct for ct in counts[0])
+                    union[ID].append(counts[3]) # appends count of reads with mate in TE
+                    union[ID].append(counts[4]) # appends count of reads that are only soft-clipped at the junction
                     tmp.append([ID,union[ID]])
                     if nth_job==1:
                         drawProgressBar(ct/float(len(siteID)))
@@ -118,12 +119,11 @@ def main():
     if args.wd == -1:
         cwd=os.getcwd()
     else:
-        cwd=os.path.realpath(args.wd)
+        cwd=os.path.abspath(args.wd)
 
     # import options
-    prep_TF=os.path.realpath(args.DIR)
-    #prefix=os.path.dirname(prep_TF).split("/")[-1].split(".prep_TF")[0]
-    prefix=os.path.basename(args.DIR).replace(".prep_TF","")
+    prep_TF=os.path.abspath(args.DIR)
+    prefix=os.path.abspath(args.DIR).split("/")[-1].replace(".prep_TF","")
     exeSAM=args.exeSAM
     exeBWA=args.exeBWA
     qual=args.qual
@@ -164,15 +164,12 @@ def main():
 
     # read samples and stats
     samples=[]
-    with open(os.path.realpath(args.samples), 'r') as fIN:
+    with open(os.path.abspath(args.samples), 'r') as fIN:
         for line in fIN:
             bamFILE = line.split()[0].replace(".bam",".subsmpl.bam")
             #print "#",line.split()[1],args.ID
             if line.split()[1] == args.ID:
-                #print "hah"
                 statsFILE = bamFILE.replace(".bam", ".stats.txt")
-                #print statsFILE
-                #sys.exit()
                 pre=line.split()[1]
                 with open(statsFILE, 'r') as fIN:
                     for l in fIN:
@@ -185,13 +182,14 @@ def main():
                 samples.append([bamFILE, pre, [readLen, insz, sd]])
 
     # create the genotype directory
-    genoDir = os.path.join(cwd,"finalPos")
+    #genoDir = os.path.join(cwd,"finalPos")
+    genoDir = os.path.join(cwd,"genotypes")
     tmpDir = os.path.join(cwd,pre+".tmp")
     mkdir_if_not_exist(genoDir, tmpDir)
 
     # read positions to search
     union=[]
-    with open(os.path.join(cwd,"initialPos","union_sorted.collapsed.txt"), "r") as fIN:
+    with open(os.path.join(cwd,"countPos","union_sorted.collapsed.txt"), "r") as fIN:
         for line in fIN:
             union.append(line.split())
 
@@ -221,14 +219,13 @@ def main():
         outCounts=[]
         while nProc:
             x = result_q.get()
-            #print "result get",x
             outCounts.extend(y for y in x)
             nProc-=1
     cts=sorted(outCounts)
 
     # write the results
     for i in range(len(samples)):
-        outFILE=os.path.join(genoDir,samples[i][1]+".counts.txt")
+        outFILE=os.path.join(cwd,"countPos",samples[i][1]+".counts.txt")
         with open(outFILE, "w") as fOUT:
             for j in range(len(cts)):
                 fOUT.write("\t".join([str(y) for y in cts[j][1]])+"\n")

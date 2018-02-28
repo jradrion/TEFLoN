@@ -17,39 +17,48 @@ Test files are provided to ensure TEFLoN and its dependencies are running correc
 
 ## Usage
 ### Data prep
-Step 1a) If you have a reference TE annotation in BED format, use teflon_prep_w_anno.py to prepare your reference genome for mapping.
+Step 1a) If you have a reference TE annotation in BED6 format, use teflon_prep_annotation.py to prepare your reference genome for mapping.
 
-IMPORTANT: A unique identifier must be used for each entry in the annotation file (field 4). An example annotation file is provided in TEFLoN/test_files.
+IMPORTANT: A unique identifier must be used for each entry in the annotation file (column 4). An example annotation file is provided in TEFLoN/test_files.
 
-NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (ideally this label would indicate the family or order for each TE instance, but you can use any label you like.)
-TEFLoN will cluster or split reads mapping to the locations specified in the annotation by their respective labels from this user created TE hierarchy file.
+NOTE: You must also manually create a file where each entry in the reference TE annotation corresponds at least one label (ideally this label would indicate the family/order/class for each TE instance, but you can use any label you like.)
+TEFLoN will either group or split all reads mapping to the locations specified in the annotation by their respective labels from this user created TE hierarchy file.
 The first line of this file must include identifying headers (the header for column of individual TE instances must be "id", the other header labels can be anything and each column must be separated by a tab).
 A good example of what this TE hierarchy file should look like is provided in the test files.
 
 ```
-usage: python /usr/local/teflon_prep_w_anno.py <required> [optional] 
+usage: python /usr/local/teflon_prep_annotation.py <required> [optional] 
     -wd [full path to working directory]
-    -a <full path to reference TE annotation in BED format> 
+    -a <full path to reference TE annotation in BED6 format> 
     -t <full path to user generated TE hierarchy>
     -f [canonical TE sequences in fasta format]
     -g <full path to reference genome in fasta format>
     -p <prefix for all newly created files>
 ```
 
-Step 1b) If you *do not* have an existing TE annotation in BED format, use teflon_prep_no_anno.py to prepare your reference genome for mapping.
+Step 1b) If you *do not* have an existing TE annotation in BED6 format, use teflon_prep_custom.py to prepare your reference genome for mapping. 
+You will still need a library of TE sequences (in fasta format) to map against. 
+Repeat libraries are available via RepBase (http://www.girinst.org/repbase/).
 
-NOTE: In this case you will *not* need to manually create a hierarchy file, as TEFLoN will automatically generate one based on the labels provided in the repBase library. However, you may wish to modify this file to include more information than is automatically generated.
+IMPORTANT NOTES: Many RepBase libraries include non-TE sequence in addition to TE sequence. If you include non-TEs in your library, TEFLoN will treat these sequences as if they were TEs and this will confound your results.
+Please inspect the RepBase library and remove any non-TE sequences.
+Please format your TE library such that the header for each sequence is ">some_unique_te_identifier#te_class\n". 
+Many of the RepBase libraries have order/class information in the sequence header. You can use this label, provided the header is formatted as above. 
+When using teflon_prep_custom.py you will *not* need to manually create a hierarchy file, as TEFLoN will automatically generate one based on the labels provided in the TE library (ie the te_class label in the header). 
+You may wish to manually edit this hierarchy file to include more information than is automatically generated. It is located at /usr/local/prefix.prep_TF/prefix.hier
+An example te library file is provided in TEFLoN/test_files.
 
 ```
 usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
     -wd [full path to working directory]
     -e <full path to RepeatMasker executable> 
     -g <full path to reference genome in fasta format>
-    -r <full path to repBase_library.ref for your organism> #NOTE: a custom TE library may be used, but fasta sequence headers must be formatted as ">FAMILYID\tORDERID\n" 
+    -l <full path to TE library for your organism> #NOTE: a custom TE library may be used, and fasta sequence headers must be formatted as ">some_unique_te_identifier#te_class\n" 
     -p <prefix for all newly created files>
-    -l [minimum length for RepeatMasker predicted TE to be reported in final annotation] 
-    -s [RepeatMasker predicted TEs from the same family separated by distances less than the splitDist will be combined into a single annotated TE] #Note: it is recommended to use average sequencing read length 
-    -d [only those repeats < x percent diverged from the consensus seq will be included in final annotation]
+    -c [SW cutoff score for RepeatMasker, default=250] 
+    -m [minimum length for RepeatMasker predicted TE to be reported in final annotation, default=200] 
+    -s [RepeatMasker predicted TEs from the same family separated by distances less than the splitDist will be combined into a single annotated TE, default=100] #Note: it is recommended to use average sequencing read length 
+    -d [only those repeats < x percent diverged from the consensus seq will be included in final annotation, default=20]
     -t [number of threads]
 ```
 
@@ -82,7 +91,7 @@ You are now ready to proceed to using TEFLoN.
 
 ### Using TEFLoN
 There are four modules in TEFLoN: teflon.v0.3, teflon_collapse, teflon_count, and teflon_genotype.
-You must run teflon.v0.3 and teflon_count separately for each sample. These modules run independently for each sample (i.e. you can run all samples simultaneously with enough threads).
+You must run teflon.v0.3 and teflon_count separately for each sample. These modules run independently for each sample (i.e. you can run all samples simultaneously).
 Teflon_collapse and teflon_genotype only need to run once per analysis.
 
 Step 1) For each sample, run teflon.v0.3
@@ -94,10 +103,10 @@ usage: python usr/local/teflon.v0.3.py <required> [optional]
     -i <unique id for this sample> #must match unique id from samples.txt
     -eb <full path to BWA executable>
     -es <full path to samtools executable>
-    -l1 <level of the hierarchy file to guide initial TE search> #it is recommended to use the lowest level in the hierarchy file (i.e. "hier_level_1" for data without user-curated hierarchy)
-    -l2 <level of the hierarchy to cluster similar TEs> #same level of the hierarchy used in -l or higher (clustering at higher levels will reduce the number of TE instances found and improve accuracy in determining the TE type)
+    -l1 <level of the hierarchy file to guide initial TE search> #it is recommended to use the lowest level in the hierarchy file (i.e. "family" for data without user-curated hierarchy)
+    -l2 <level of the hierarchy to cluster similar TEs> #same level of the hierarchy used in -l1 or a higher level (clustering at higher levels will reduce the number of TE instances found, but improve accuracy for discriminating TE identity)
     -q <map quality threshold> #mapped reads with map qualities lower than this number will be discarded
-    -exclude [newline separated file containing the name of any TE families to exclude from analysis] #these names must match names from column -l1 from the hierarchy file
+    -exclude [newline separated file containing the name of any TE families to exclude from analysis] #these TE names must match names in column 1 of the hierarchy file
     -sd [insert size standard deviation] #used to manually override the insert size sd identified by samtools stat (check this number in the generated stats.txt file to ensure it seems more or less correct based on knowledge of sequencing library!)
     -cov [coverage override] #used to manually override the estimated coverage if you get the error: "Warning: coverage could not be estimated"
     -t [number of threads]
@@ -156,7 +165,7 @@ C8: 5' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
 C9: 3' breakpoint is supported by soft-clipped reads (if TRUE "+" else "-")
 C10: read count for "presence reads"
 C11: read count for "absence reads"
-C12: read count for "other reads"
+C12: read count for "ambiguous reads"
 C13: genotype (allele frequency for pooled data, present/absent/heterozygous for haploid/diploid) #Note: haploid/diploid caller under construction, use "pooled" for presence/absence read counts
 
 ```

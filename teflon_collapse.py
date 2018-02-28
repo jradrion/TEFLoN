@@ -3,11 +3,11 @@ import subprocess as sp
 import shlex
 import multiprocessing as mp
 
-teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
+teflonBase = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import sort_positions as sortp
-from teflon_scripts import collapse_union as cu
+from teflon_scripts import collapse_union_DEBUG as cu
 from teflon_scripts import mean_stats as ms
 from teflon_scripts import subsample_alignments as sa
 
@@ -45,7 +45,7 @@ def worker1(task_q, params):
             cwd, thresh = params
             for sample in samples:
                 print "collapse:",sample[1]
-                sortedFILE=os.path.join(cwd,"initialPos",sample[1]+".all_positions_sorted.txt")
+                sortedFILE=os.path.join(cwd,"countPos",sample[1]+".all_positions_sorted.txt")
                 cu.collapse_union_portal(sortedFILE, sample[2][0], sample[2][1], thresh)
         finally:
             task_q.task_done()
@@ -67,10 +67,10 @@ def main():
     if args.wd == -1:
         cwd=os.getcwd()
     else:
-        cwd=os.path.realpath(args.wd)
+        cwd=os.path.abspath(args.wd)
 
     # import options
-    exeSAM=os.path.realpath(args.exeSAM)
+    exeSAM=os.path.abspath(args.exeSAM)
     thresh1=args.thresh1
     thresh2=args.thresh2
     qual=args.qual
@@ -80,7 +80,7 @@ def main():
     # read the samples and stats
     samples=[]
     # each sample will be formatted [path to bamFILE, uniqueID, [stats]]
-    with open(os.path.realpath(args.samples), 'r') as fIN:
+    with open(os.path.abspath(args.samples), 'r') as fIN:
         for line in fIN:
             statsOutFile = line.split()[0].replace(".bam", ".stats.txt")
             with open(statsOutFile, 'r') as fIN:
@@ -103,15 +103,15 @@ def main():
             samples.append([line.split()[0], line.split()[1], [readLen, insz, sd, total_n,cov,cov_sd]])
 
     # generate subsampled alignments for use in teflon_count
-    sa.subsample_alignments_portal(samples, exeSAM, nProc, qual, covOverride,os.path.realpath(args.DIR))
+    sa.subsample_alignments_portal(samples, exeSAM, nProc, qual, covOverride,os.path.abspath(args.DIR))
 
     # average the stats for each sample
     stats=ms.mean_stats_portal(samples)
     readLen,insz=stats[0],stats[1]
 
     # create the genotype directory
-    genoDir = os.path.join(cwd,"initialPos")
-    mkdir_if_not_exist(genoDir)
+    countDir = os.path.join(cwd,"countPos")
+    mkdir_if_not_exist(countDir)
 
     # run multiprocess 1
     task_q = mp.JoinableQueue()
@@ -126,12 +126,13 @@ def main():
     else:
         print "\nfinished collapsing samples"
 
+
     # concatonate position estimates for each sample
-    catFile = os.path.join(genoDir, "union.txt")
+    catFile = os.path.join(countDir, "union.txt")
     try:
         files = ""
         for sample in samples:
-            files += os.path.join(genoDir, sample[1]+".all_positions_sorted.collapsed.txt" + " ")
+            files += os.path.join(countDir, sample[1]+".all_positions_sorted.collapsed.txt" + " ")
         cmd = "cat %s" %(files)
         #print "cmd:", cmd  #p = sp.Popen(shlex.split(cmd), stdout=open(catFile, 'w'), stderr=sp.PIPE)
         p = sp.Popen(shlex.split(cmd), stdout=open(catFile, 'w'), stderr=sp.PIPE)

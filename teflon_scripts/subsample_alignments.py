@@ -84,7 +84,8 @@ def worker(task_q, params):
 
 def subsample_alignments_portal(samples, exePATH, nProc, qual, cov, DIR):
     if cov == -1:
-        min_seqs=int(min(x[2][4] for x in samples))
+        #min_seqs=int(min(x[2][4] for x in samples))
+        min_seqs=round(min(x[2][4] for x in samples))
         print "Subsampling to the minimum read depth from a single sample:", min_seqs
     else:
         min_seqs=min(x[2][4] for x in samples)

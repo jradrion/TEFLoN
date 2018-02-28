@@ -108,18 +108,46 @@ def collapseElements(lst, thresh):
         return [chrom,str(Fpos),str(Rpos),fam,cLev,orient,ref,Fclip,Rclip,Fct,Rct]
 
 
+#def addToGroup(elem, cluster, readLen, insz):
+#    print "elem:",elem,":elem"
+#    print "readLen;",readLen,":readLen"
+#    sys.exit()
+#    maxTSDLen=20
+#    for i in xrange(len(cluster)):
+#        if cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] != elem[6]:
+#            return 0
+#        if cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] == elem[6]:
+#            return 1
+#        if cluster[i][0] == elem[0] and cluster[i][1] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][1])+readLen and cluster[i][4]==elem[4]:
+#            return 1
+#        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[2] != "-" and int(elem[2]) <= int(cluster[i][2])+readLen and cluster[i][4]==elem[4]:
+#            return 1
+#        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][2])+maxTSDLen and cluster[i][4]==elem[4]:
+#            return 1
+#    else:
+#        return 0
+
 def addToGroup(elem, cluster, readLen, insz):
+    #print "cluster:",cluster,":cluster"
+    #print "elem:",elem,":elem"
+    #print "readLen;",readLen,":readLen"
+    #sys.exit()
     maxTSDLen=20
     for i in xrange(len(cluster)):
         if cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] != elem[6]:
+            #print "if0"
             return 0
         if cluster[i][6] != "-" and elem[6] != "-" and cluster[i][6] == elem[6]:
+            #print "if1"
             return 1
         if cluster[i][0] == elem[0] and cluster[i][1] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][1])+readLen and cluster[i][4]==elem[4]:
+            #print "if2"
             return 1
-        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[2] != "-" and int(elem[2]) <= int(cluster[i][2])+readLen and cluster[i][4]==elem[4]:
+        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[1] == "-" and  elem[2] != "-" and int(elem[2]) <= int(cluster[i][2])+readLen and cluster[i][4]==elem[4]:
+            #print "if3"
             return 1
-        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][2])+maxTSDLen and cluster[i][4]==elem[4]:
+        if cluster[i][0] == elem[0] and cluster[i][2] != "-" and elem[1] != "-" and int(elem[1]) <= int(cluster[i][2])+maxTSDLen and cluster[i][4]==elem[4] and elem[6] == "-" and cluster[i][6] == "-":
+            #print "if4"
             return 1
     else:
         return 0
@@ -143,6 +171,7 @@ def grouper(lst,readLen,insz,uniqueGroups):
                 group.append([item])
         progress_bar(ct/float(len(lst)))
         ct+=1
+    #print "group:",group,":group"
     return group
 
 
@@ -154,6 +183,10 @@ def collapse(lst, readLen, insz, thresh, uniqueGroups):
     preCollapse=dict(enumerate(grouper(lst,readLen,insz,uniqueGroups),0))
     for i in range(len(preCollapse)):
         collapsedElements.append(collapseElements(preCollapse[i], thresh))
+
+    #print collapsedElements
+    #sys.exit()
+
     for x in collapsedElements:
         if isGenotypable(x) != 1:
             genotypableElements.append(x)

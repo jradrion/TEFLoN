@@ -126,6 +126,8 @@ def ct_type1FR(reads, F, R, union, TEID):
     '''Type 1 events are characterized by the F support breakpoint following the R support breakpoint (ie TSD)'''
     #print "type1FR"
     cts=[0,0,0]
+    mate_ct=0 # count of reads where the mate maps to a TE (used as a lower bound)
+    clip_ct=0 # count of reads with soft clipping (used as a upper bound)
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
@@ -133,45 +135,43 @@ def ct_type1FR(reads, F, R, union, TEID):
             try:
                 TEID[read[6]]
                 if bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    mate_ct+=1
                 elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    mate_ct+=1
                 else:
                     TEID["EXCEPT!"]
             except KeyError:
                 if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
-                    #print read[0], "\t", "a"
                     cts[1]+=1
                 elif bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 else:
-                    #print read[0], "\t", "na"
                     cts[2]+=1
         else:
-            #print read[0], "\t", "na"
             cts[2]+=1
-    return [cts,"-","-"]
+    return [cts,"-","-",mate_ct,clip_ct]
 
 def ct_type1F(reads, F, R, union, TEID):
     '''Type 1 events are characterized by the F support breakpoint following the R support breakpoint (ie TSD)'''
-    #print "type1F"
     if union[6] == "-":
         R=F-12
     else:
         R=F-1
     cts=[0,0,0]
+    mate_ct=0 # count of reads where the mate maps to a TE (used as a lower bound)
+    clip_ct=0 # count of reads with soft clipping (used as a upper bound)
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
@@ -179,36 +179,33 @@ def ct_type1F(reads, F, R, union, TEID):
             try:
                 TEID[read[6]]
                 if bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    mate_ct+=1
                 elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    mate_ct+=1
                 else:
                     TEID["EXCEPT!"]
             except KeyError:
                 if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
-                    #print read[0], "\t", "a"
                     cts[1]+=1
                 elif bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 else:
-                    #print read[0], "\t", "na"
                     cts[2]+=1
         else:
-            #print read[0], "\t", "na"
             cts[2]+=1
-    return [cts,"-","-"]
+    return [cts,"-","-",mate_ct,clip_ct]
 
 def ct_type1R(reads, F, R, union, TEID):
     #print "type1R"
@@ -219,6 +216,8 @@ def ct_type1R(reads, F, R, union, TEID):
         F=R+1
     '''Type 1 events are characterized by the F support breakpoint following the R support breakpoint (ie TSD)'''
     cts=[0,0,0]
+    mate_ct=0 # count of reads where the mate maps to a TE (used as a lower bound)
+    clip_ct=0 # count of reads with soft clipping (used as a upper bound)
     overShoot=3
     for read in reads:
         if isPrimary(read) == 1:
@@ -226,44 +225,39 @@ def ct_type1R(reads, F, R, union, TEID):
             try:
                 TEID[read[6]]
                 if bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot:
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    mate_ct+=1
                 elif bFlags[4] == 1 and int(read[3]) > R-overShoot:
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    mate_ct+=1
                 else:
                     TEID["EXCEPT!"]
             except KeyError:
                 if int(read[3]) <= R-overShoot and rightMostPos(int(read[3]),cigarParse(read[5])) >= F+overShoot:
-                    #print read[0], "\t", "a"
                     cts[1]+=1
                 elif bFlags[4] == 0 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 0 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 1 and int(read[3])  > R-overShoot and  "L" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 elif bFlags[4] == 1 and rightMostPos(int(read[3]),cigarParse(read[5])) < F+overShoot and "R" in side_clipped(read[5]):
-                    #print read[0], "\t", "p"
                     cts[0]+=1
+                    clip_ct+=1
                 else:
-                    #print read[0], "\t", "na"
                     cts[2]+=1
         else:
-            #print read[0], "\t", "na"
             cts[2]+=1
-    return [cts,"-","-"]
+    return [cts,"-","-",mate_ct,clip_ct]
 
 def ct_type2(reads, union, TEID):
     '''Type 2 events are characterized by any other event where either one or both sides have evidence for a clipped position'''
     if union[7] == "-" and union[8] == "+":
-        #return ct_type1FR(reads, int(union[2]), int(union[2]))
         return ct_type1R(reads, int(union[2]), int(union[2]), union, TEID)
     elif union[7] == "+" and union[8] == "-":
-        #return ct_type1FR(reads, int(union[1]), int(union[1]))
         return ct_type1F(reads, int(union[1]), int(union[1]), union, TEID)
     else:
         print "ct_type2 error"
@@ -293,7 +287,7 @@ def countReads_portal(ID, union, samples, tmpDir, samFILE, hierarchy, label, l2,
             TEID[h]=""
     # count the reads
     if not samFILE:
-        return [[0,0,0],"-","-"]
+        return [[0,0,0],"-","-",0,0]
     else:
         reads=[x.split("\t") for x in samFILE.split("\n")]
         del reads[-1]

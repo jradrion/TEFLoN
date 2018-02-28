@@ -10,7 +10,13 @@ def write_bed_portal(hierarchy, label, group, level, bedDir):
     megaOutFile = os.path.join(bedDir, "mega_complete.bed")
     with open(bedOutFile, 'w') as fOUT:
         for x in sorted(teIDs):
-            fOUT.write(x+'\t1\t1000000'+'\n')
+            outline=x+'\t1\t1000000'+'\n'
+            #if x == "TEid8276.ine-1.helitron":
+            #    print "!",x
+            fOUT.write(outline)
     with open(megaOutFile, 'a') as fOUT:
         for x in sorted(teIDs):
-            fOUT.write(x+'\t1\t1000000'+'\n')
+            outline=x+'\t1\t1000000'+'\n'
+            #if x == "TEid8276.ine-1.helitron":
+            #    print outline
+            fOUT.write(outline)

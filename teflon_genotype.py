@@ -2,12 +2,12 @@ import argparse, sys, os, gzip
 import cPickle as pickle
 import gc
 
-teflonBase = os.path.dirname(os.path.realpath(sys.argv[0]))
+teflonBase = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.insert(1, teflonBase)
 
 from teflon_scripts import mean_stats as ms
 from teflon_scripts import genotyper_poolType as pt
-from teflon_scripts import pseudo2refConvert as p2rC
+from teflon_scripts import pseudo2refConvert_DEBUG as p2rC
 
 def load_pickle(pFILE):
     tmpFILE=pFILE.replace(os.path.basename(pFILE),os.path.basename(pFILE)+".tmp")
@@ -30,7 +30,8 @@ def main():
     parser.add_argument('-wd',dest='wd',help='full path to working directory', default=-1)
     parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
     parser.add_argument('-s',dest='samples',help='tab delimited text file with full paths to indexed bamFILEs and sorted te positions')
-    parser.add_argument('-f',dest='filt',help='sites genotyped as -9 if adjusted read counts greater than this threshold (default=mean_coverage + 2*STDEV)', type=int, default=-1)
+    parser.add_argument('-lt',dest='loThresh',help='sites genotyped as -9 if adjusted read counts less than than this threshold (default=1)', type=int, default=-1)
+    parser.add_argument('-ht',dest='hiThresh',help='sites genotyped as -9 if adjusted read counts greater than this threshold (default=mean_coverage + 2*STDEV)', type=int, default=-1)
     parser.add_argument('-dt',dest='dataType',help='haploid, diploid, or pooled')
     args = parser.parse_args()
 
@@ -38,12 +39,13 @@ def main():
     if args.wd == -1:
         cwd=os.getcwd()
     else:
-        cwd=os.path.realpath(args.wd)
+        cwd=os.path.abspath(args.wd)
 
     # import options
-    hardFilt=args.filt
-    prep_TF=os.path.realpath(args.DIR)
-    prefix=os.path.basename(args.DIR).replace(".prep_TF","")
+    loFilt=args.loThresh
+    hiFilt=args.hiThresh
+    prep_TF=os.path.abspath(args.DIR)
+    prefix=os.path.abspath(args.DIR).split("/")[-1].replace(".prep_TF","")
     dataType=args.dataType
     if dataType not in "haploid, diploid, or pooled":
         return "Error datatype must be either haploid, diploid, or pooled"
@@ -51,7 +53,7 @@ def main():
 
     # read samples and stats
     samples=[]
-    with open(os.path.realpath(args.samples), 'r') as fIN:
+    with open(os.path.abspath(args.samples), 'r') as fIN:
         for line in fIN:
             bamFILE=line.split()[0].replace(".bam",".subsmpl.bam")
             statsFile = bamFILE.replace(".bam", ".stats.txt")
@@ -76,28 +78,42 @@ def main():
     stats=ms.mean_stats_portal(samples)
 
     # create the genotype directory
-    genoDir = os.path.join(cwd,"finalPos")
+    countDir = os.path.join(cwd,"countPos")
+    genoDir = os.path.join(cwd,"genotypes")
 
-    # define coverage threshold
-    if hardFilt == -1:
-        c_thresh=[]
+    # define lower-bound coverage thresholds
+    if loFilt == -1:
+        l_thresh=[]
         for sample in samples:
-            c_thresh.append(int(sample[2][3]+ (2*sample[2][4])))
+            l_thresh.append(1)
     else:
-        c_thresh=[]
+        l_thresh=[]
         for sample in samples:
-            c_thresh.append(hardFilt)
-    print "Coverage threshold filters (for each sample): %s" %(c_thresh)
-    print "NOTE: all sites with adjusted read counts > coverage threshold will be marked -9"
+            l_thresh.append(loFilt)
+    print "Lower-bound coverage threshold filters corresponding to samples %s is %s" %([x[1] for x in samples],l_thresh)
+    print "NOTE: all sites with adjusted read counts > upper-bound coverage threshold will be marked -9"
+
+
+    # define upper-bound coverage threshold
+    if hiFilt == -1:
+        h_thresh=[]
+        for sample in samples:
+            h_thresh.append(int(sample[2][3]+ (2*sample[2][4])))
+    else:
+        h_thresh=[]
+        for sample in samples:
+            h_thresh.append(hiFilt)
+    print "Upper-bound coverage threshold filters corresponding to samples %s is %s" %([x[1] for x in samples],h_thresh)
+    print "NOTE: all sites with adjusted read counts > upper-bound coverage threshold will be marked -9"
+
 
     #load pseudo2ref.pickle
     pickleFILE=os.path.join(prep_TF,prefix+".pseudo2ref.pickle.gz")
-    #posMap=pickle.load(gzip.open(pickleFILE, "rb"))
     posMap=load_pickle(pickleFILE)
 
     # genotype samples
     if dataType == "pooled":
-        pt.pt_portal(genoDir,samples, posMap, stats, p2rC, c_thresh)
+        pt.pt_portal(countDir,genoDir,samples, posMap, stats, p2rC, l_thresh, h_thresh)
     else:
         print """coming soon...use "pooled" to obtain presence and absence read counts"""
     print "TEFLON GENOTYPE FINISHED!"
