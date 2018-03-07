@@ -50,7 +50,7 @@ You may wish to manually edit this hierarchy file to include more information th
 An example of a properly formatted TE library file is provided in TEFLoN/test_files.
 
 ```
-usage: python /usr/local/teflon_prep_no_anno.py <required> [optional] 
+usage: python /usr/local/teflon_prep_custom.py <required> [optional] 
     -wd [full path to working directory]
     -e <full path to RepeatMasker executable> 
     -g <full path to reference genome in fasta format>

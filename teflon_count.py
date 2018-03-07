@@ -182,7 +182,6 @@ def main():
                 samples.append([bamFILE, pre, [readLen, insz, sd]])
 
     # create the genotype directory
-    #genoDir = os.path.join(cwd,"finalPos")
     genoDir = os.path.join(cwd,"genotypes")
     tmpDir = os.path.join(cwd,pre+".tmp")
     mkdir_if_not_exist(genoDir, tmpDir)
