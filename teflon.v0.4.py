@@ -250,17 +250,17 @@ def main():
     print "Calculating alignment statistics"
     cmd = "%s stats -t %s %s" %(exeSAM, genomeSizeFILE, bam)
     print "cmd:",cmd
-    p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
-    perr = p.communicate()[1]
-    if p.returncode != 0:
-        print "samtools stats issued error: %s" %(perr)
-        sys.exit(1)
+    #p = sp.Popen(shlex.split(cmd), stdout=open(statsOutFile, 'w'), stderr=sp.PIPE)
+    #perr = p.communicate()[1]
+    #if p.returncode != 0:
+    #    print "samtools stats issued error: %s" %(perr)
+    #    sys.exit(1)
 
     # calculate coverage
     covFILE = bam.replace(".bam", ".cov.txt")
     cmd="""%s depth -Q %s %s | awk '{sum+=$3; sumsq+=$3*$3} END {print "Average = ",sum/NR; print "Stdev = ",sqrt(sumsq/NR - (sum/NR)**2)}' > %s""" %(exeSAM, str(qual), bam, covFILE)
     print "cmd:",cmd
-    os.system(cmd)
+    #os.system(cmd)
 
     # read samtools stats file
     with open(statsOutFile, 'r') as fIN:
@@ -312,19 +312,28 @@ def main():
     #groups= ["doc3"] #debug single family
     print "Groups to search:", groups
 
-    # run multiprocess 1
-    print "writing TE bed files..."
-    task_q = mp.JoinableQueue()
-    params=[annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
-    create_proc1(nProc, task_q, params)
-    assign_task(groups, task_q, nProc)
-    try:
-        task_q.join()
-    except KeyboardInterrupt:
-        print "KeyboardInterrupt"
-        sys.exit(0)
-    else:
-        print "writing TE bed files completed!"
+    ## run multiprocess 1
+    #print "writing TE bed files..."
+    #task_q = mp.JoinableQueue()
+    #params=[annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
+    #create_proc1(nProc, task_q, params)
+    #assign_task(groups, task_q, nProc)
+    #try:
+    #    task_q.join()
+    #except KeyboardInterrupt:
+    #    print "KeyboardInterrupt"
+    #    sys.exit(0)
+    #else:
+    #    print "writing TE bed files completed!"
+
+
+    #debug start
+    for group in groups:
+        #print "group:",group
+        wb.write_bed_portal(hierarchy, label, group, level, bedDir)
+    print "debug end"
+    sys.exit()
+
 
     # reduce search-space 1
     print "reducing search space..."
