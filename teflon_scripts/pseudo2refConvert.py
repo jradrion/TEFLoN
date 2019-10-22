@@ -13,7 +13,7 @@ def isGap(ch,pos,psmap):
     """if there is a gap near the position to be transformed
     return the left most position of the gap for a forward read and the rightmost for a reverse read
     else, return the normal transformation of the position"""
-    if int(pos)+5 > len(psmap[ch]) or int(pos)-4 < 0:
+    if int(pos)+5 >= len(psmap[ch]) or int(pos)-4 < 0:
         return 0
     elif abs(psmap[ch][int(pos)+5] - psmap[ch][int(pos)-4]) > 10:
         return 1
