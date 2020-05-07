@@ -13,7 +13,11 @@ Input samples can either be individually sequenced or sequenced as a pool, and m
 * [RepeatMasker](www.repeatmasker.org) (Only required if you do not have a reference TE annotation)
 
 ## Testing 
-Test files are provided to ensure TEFLoN and its dependencies are running correctly.
+Test files are provided to ensure TEFLoN and its dependencies are running without error. After installing the above dependencies, try the following:
+```
+cd ./test_files/
+bash sample_pipeline.sh
+```
 
 ## Usage
 ### Data prep
