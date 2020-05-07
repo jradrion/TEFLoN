@@ -55,7 +55,7 @@ def main():
     parser.add_argument('-wd',dest='wd',help='full path to working directory',default=-1)
     parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
     parser.add_argument('-s',dest='samples',help='tab delimited text file with full paths to indexed bamFILEs and sorted te positions')
-    parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable')
+    parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable', default="samtools")
     parser.add_argument('-n1',dest='thresh1',help='TEs must be supported by >= n reads in at least one sample', type=int, default=1)
     parser.add_argument('-n2',dest='thresh2',help='TEs must be supported by >= n reads summed across all samples', type=int, default=1)
     parser.add_argument('-cov',dest='cov',help='subsample to coverage override', type=float, default=-1)
@@ -70,7 +70,7 @@ def main():
         cwd=os.path.abspath(args.wd)
 
     # import options
-    exeSAM=os.path.abspath(args.exeSAM)
+    exeSAM=args.exeSAM
     thresh1=args.thresh1
     thresh2=args.thresh2
     qual=args.qual
