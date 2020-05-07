@@ -170,8 +170,8 @@ def main():
     parser.add_argument('-d',dest='DIR',help='full path to prep_TF directory')
     parser.add_argument('-s',dest='samples',help='samples file')
     parser.add_argument('-i',dest='ID',help='unique id of this sample')
-    parser.add_argument('-eb',dest='exeBWA',help='full path to bwa executable')
-    parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable')
+    parser.add_argument('-eb',dest='exeBWA',help='full path to bwa executable', default="bwa")
+    parser.add_argument('-es',dest='exeSAM',help='full path to samtools executable', default="samtools")
     parser.add_argument('-l1',dest='level',help='level of hierarchy to guide initial search')
     parser.add_argument('-l2',dest='cLevel',help='level of hierarchy to cluster')
     parser.add_argument('-q',dest='qual',help='map quality threshold',type=int)
@@ -312,23 +312,11 @@ def main():
     #groups= ["doc3"] #debug single family
     print "Groups to search:", groups
 
-    ## run multiprocess 1
-    #print "writing TE bed files..."
-    #task_q = mp.JoinableQueue()
-    #params=[annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir]
-    #create_proc1(nProc, task_q, params)
-    #assign_task(groups, task_q, nProc)
-    #try:
-    #    task_q.join()
-    #except KeyboardInterrupt:
-    #    print "KeyboardInterrupt"
-    #    sys.exit(0)
-    #else:
-    #    print "writing TE bed files completed!"
-
+    print "\nwriting TE bed files..."
     for group in groups:
         #print "group:",group
         wb.write_bed_portal(hierarchy, label, group, level, bedDir)
+    print "writing TE bed files completed!"
 
     # reduce search-space 1
     print "reducing search space..."
@@ -347,12 +335,6 @@ def main():
         print "Cannot run samtools"
     print "search space succesfully reduced..."
     print "new reduced bam file:",bamFILE
-
-
-    # index new reduced alignment 1
-    cmd="%s index %s" %(exeBWA,bamFILE)
-    print "cmd:", cmd
-    os.system(cmd)
 
     # run multiprocess 2
     print "clustering TE positions..."
@@ -385,12 +367,6 @@ def main():
         print "Cannot run samtools"
     print "search space succesfully reduced..."
     print "new reduced bam file:",bamFILE
-
-    # index new reduced alignment 2
-    cmd="%s index %s" %(exeBWA,bamFILE)
-    print "cmd:", cmd
-    os.system(cmd)
-
 
     # run multiprocess 3
     print "estimating TE breakpoints..."
