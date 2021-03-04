@@ -24,11 +24,11 @@ bash sample_pipeline.sh
 Step 1a) If you have a reference TE annotation in BED6 format, use teflon_prep_annotation.py to prepare your reference genome for mapping.
 
 IMPORTANT NOTES:
+Using the `-f` option will append a user-provided set of consensus sequences to your reference prior to mapping, helping TEFLoN identify sequences that may not correspond to those in the reference TE annotation.
 A unique identifier must be used for each entry in the annotation BED file (column 4). An example annotation file is provided in TEFLoN/test_files.
 TEFLoN also required a "TE hierarchy" file, which includes a line corresponding to every TE in the reference annotation and at least one label for that TE (ideally this label would indicate the family/order/class for each TE instance, but you can use any label you like.)
 TEFLoN will either group or split TEs by their respective labels provided in this file.
-The first line of this tab-separated TE hierarchy file must include identifying headers (the header for column one must be "id", but the other header labels are chosen by the user).
-A good example of a properly formatted TE hierarchy file is provided in the test files.
+The first line of this tab-separated TE hierarchy file must include identifying headers (the header for column one must be "id", but the other header labels are chosen by the user). A good example of a properly formatted TE hierarchy file is provided in the test files.
 
 ```
 usage: python /usr/local/teflon_prep_annotation.py <required> [optional] 
