@@ -124,9 +124,7 @@ def cluster_positions_portal(sam, group, chromosomes, lengths, readLen, insz, sd
 
     # write positions
     bedOutFile = os.path.join(bedDir, "%s_clustered.bed" %(group))
-    megaOutFile = os.path.join(bedDir, "mega_clustered.bed")
-    with open(bedOutFile, 'w') as fOUT1, open(megaOutFile, "a") as fOUT2:
+    with open(bedOutFile, 'w') as fOUT:
         for i in xrange(len(clusters)):
             for j in xrange(len(clusters[i])):
-                fOUT1.write(chromosomes[i]+'\t'+str(clusters[i][j][0])+'\t'+str(clusters[i][j][-1]+readLen)+'\n')
-                fOUT2.write(chromosomes[i]+'\t'+str(clusters[i][j][0])+'\t'+str(clusters[i][j][-1]+readLen)+'\n')
+                fOUT.write(chromosomes[i]+'\t'+str(clusters[i][j][0])+'\t'+str(clusters[i][j][-1]+readLen)+'\n')

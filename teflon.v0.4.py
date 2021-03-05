@@ -58,12 +58,6 @@ def assign_task(siteID, task_q, nProcs):
         nth_job += 1
         c=c+i+1
 
-def create_proc1(nProcs, task_q, params):
-    for _ in range(nProcs):
-        p = mp.Process(target=worker1, args=(task_q, params))
-        p.daemon = True
-        p.start()
-
 def create_proc2(nProcs, task_q, params):
     for _ in range(nProcs):
         p = mp.Process(target=worker2, args=(task_q, params))
@@ -75,18 +69,6 @@ def create_proc3(nProcs, task_q, params):
         p = mp.Process(target=worker3, args=(task_q, params))
         p.daemon = True
         p.start()
-
-def worker1(task_q, params):
-    while True:
-        try:
-            groups, nth_job = task_q.get()
-            #unpack parameters
-            annotation, bam, chromosomes, exeSAM, hierarchy, insz, label, lengths, level, cLevel, qual, readLen, sd, cov, bedDir, samDir, posDir, suppDir = params
-            for group in groups:
-                #print "group:",group
-                wb.write_bed_portal(hierarchy, label, group, level, bedDir)
-        finally:
-            task_q.task_done()
 
 def worker2(task_q, params):
     while True:
@@ -349,6 +331,13 @@ def main():
         sys.exit(0)
     else:
         print "\nclustering TE positions completed!"
+
+    # combine bed files from all groups
+    with open(os.path.join(bedDir, "mega_clustered.bed"),"w") as fOUT:
+        for group in groups:
+            with open(os.path.join(bedDir, "%s_clustered.bed" %(group)), "r") as fIN:
+                for line in fIN:
+                    fOUT.write(line)
 
     # reduce search-space 2
     print "final reduction of search space..."
